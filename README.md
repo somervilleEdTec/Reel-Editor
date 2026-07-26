@@ -4,7 +4,7 @@ Transcript-driven compositor and captioning tool for short-form and teaching vid
 
 ## Status
 
-**V2.0.0** — CapCut-inspired editor UX: friendlier file browser (breadcrumbs, search, keyboard), multi-format export (MP4/MOV/WebM/MKV with per-format codecs), export destination defaults to the project folder, and a cleaner charcoal editor chrome. Phases **0–4** implemented in-repo (CLI + local FastAPI/web UI). Desktop Tauri wrapper is optional; run the web UI via the API server.
+**V3.0.0** — CapCut-style dual-track editing zone (A-roll EDL + B-roll assembly), Explorer-style media picker with thumbnails, creator toolkit (undo, fillers, VO, music, transitions, titles, rank/reframe), Tauri 2 desktop shell, and uninstall process cleanup. Product renamed from Reelwright to **Reelwrite**.
 
 ## Install
 
