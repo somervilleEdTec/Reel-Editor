@@ -1,0 +1,102 @@
+import shutil
+from pathlib import Path
+
+import pytest
+from fastapi import HTTPException
+from fastapi.testclient import TestClient
+
+from reelwright.api.app import app, resolve_export_out
+from reelwright.models.project import Project
+from reelwright.models.source import Source
+from reelwright.models.word import Word
+from reelwright.render.ffmpeg import _codec_args, _stderr_tail
+
+
+def _open_project(c, tmp_path):
+    p = Project(
+        sources=[Source(id="s", path=str(tmp_path / "missing.mp4"))],
+        words=[Word(id=0, text="Hi", start_s=0, end_s=0.2, source_id="s")],
+    )
+    path = tmp_path / "proj" / "project.json"
+    path.parent.mkdir()
+    p.save(str(path))
+    assert c.post("/project/open", json={"path": str(path)}).status_code == 200
+    return path
+
+
+def test_formats_endpoint():
+    c = TestClient(app)
+    data = c.get("/formats").json()
+    assert {f["key"] for f in data["output"]} >= {"mp4", "mov", "webm", "mkv"}
+    assert data["default"] == "mp4"
+    assert ".mts" in data["input_exts"]
+
+
+def test_bare_filename_lands_in_project_dir(tmp_path):
+    proj = _open_project(TestClient(app), tmp_path)
+    out, fmt = resolve_export_out("master.mp4", None)
+    assert fmt == "mp4"
+    assert Path(out).parent == proj.parent
+
+
+def test_extension_follows_chosen_format(tmp_path):
+    _open_project(TestClient(app), tmp_path)
+    out, fmt = resolve_export_out("master.mp4", "webm")
+    assert fmt == "webm" and out.endswith("master.webm")
+    out, _ = resolve_export_out("clip.avi", "mkv")  # input-only ext gets replaced
+    assert out.endswith("clip.mkv")
+    out, fmt = resolve_export_out("plain", None)
+    assert fmt == "mp4" and out.endswith("plain.mp4")
+
+
+def test_format_inferred_from_extension(tmp_path):
+    _open_project(TestClient(app), tmp_path)
+    assert resolve_export_out("reel.webm", None)[1] == "webm"
+    assert resolve_export_out("reel.mov", None)[1] == "mov"
+
+
+def test_unknown_format_rejected(tmp_path):
+    _open_project(TestClient(app), tmp_path)
+    with pytest.raises(HTTPException) as e:
+        resolve_export_out("master.mp4", "avi")
+    assert e.value.status_code == 400
+
+
+def test_codec_args_per_format():
+    mp4 = _codec_args("mp4")
+    assert "libx264" in mp4 and "+faststart" in mp4
+    mov = _codec_args("mov")
+    assert "libx264" in mov and "+faststart" in mov
+    mkv = _codec_args("mkv")
+    assert "libx264" in mkv and "+faststart" not in mkv
+    webm = _codec_args("webm")
+    assert any(a.startswith("libvpx") for a in webm)
+    assert "+faststart" not in webm and "libx264" not in webm
+
+
+def test_stderr_tail_keeps_last_lines():
+    long = "\n".join(f"line{i}" for i in range(100))
+    tail = _stderr_tail(long)
+    assert "line99" in tail and "line0\n" not in tail
+    assert _stderr_tail(None) == "no ffmpeg output"
+    assert _stderr_tail("") == "no ffmpeg output"
+
+
+@pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="ffmpeg not installed")
+def test_export_job_surfaces_ffmpeg_stderr(tmp_path):
+    import time
+
+    c = TestClient(app)
+    _open_project(c, tmp_path)
+    res = c.post("/jobs/export", json={"out": "master.mp4", "aspect": None, "format": "mp4"})
+    assert res.status_code == 200, res.text
+    body = res.json()
+    assert body["format"] == "mp4" and body["out"].endswith("master.mp4")
+    job = None
+    for _ in range(100):
+        job = c.get(f"/jobs/{body['job_id']}").json()
+        if job["status"] in ("done", "error", "cancelled"):
+            break
+        time.sleep(0.05)
+    assert job["status"] == "error"
+    assert "ffmpeg failed" in (job["error"] or "")

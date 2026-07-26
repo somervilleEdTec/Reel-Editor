@@ -14,6 +14,7 @@ router = APIRouter(prefix="/jobs")
 class ExportJobBody(BaseModel):
     out: str = "master.mp4"
     aspect: str | None = None
+    format: str | None = None
 
 
 class TranscribeJobBody(BaseModel):
@@ -25,22 +26,22 @@ def enqueue_export(body: ExportJobBody):
     project = app_module._proj()
     # Capture path at enqueue time so job uses saved project file
     project_path = app_module._STATE["path"]
-    out = app_module._safe_path(body.out, for_write=True)
+    out, fmt = app_module.resolve_export_out(body.out, body.format)
 
     def work(job):
         job.progress = 0.1
         if job.cancel.is_set():
             return None
         p = Project.load(project_path) if project_path else project
-        path = export_master(p, out, aspect=body.aspect)
+        path = export_master(p, out, aspect=body.aspect, fmt=fmt)
         job.progress = 1.0
-        return {"out": path}
+        return {"out": path, "format": fmt}
 
     try:
         job = QUEUE.submit("export", work)
     except RuntimeError as e:
         raise HTTPException(429, str(e)) from e
-    return {"job_id": job.id}
+    return {"job_id": job.id, "out": out, "format": fmt}
 
 
 @router.post("/transcribe")

@@ -13,13 +13,12 @@ from pydantic import BaseModel
 from reelwright.api import app as app_module
 from reelwright.ffmpeg_check import ffmpeg_status
 from reelwright.jobs.queue import QUEUE
+from reelwright.media_formats import VIDEO_EXTS
 from reelwright.paths import app_data_dir, default_projects_dir, normalize_user_path, vendor_dir
 from reelwright.setup_state import load_setup, projects_dir_from_state, save_setup
 from reelwright.workflows import init_project, transcribe_project
 
 router = APIRouter()
-
-VIDEO_EXTS = {".mp4", ".mov", ".mkv", ".webm", ".m4v", ".avi"}
 
 
 class ConsentBody(BaseModel):
@@ -233,7 +232,11 @@ def fs_list(dir: str | None = None):
             if child.is_dir():
                 entries.append({"name": child.name, "path": str(child), "type": "dir"})
             elif child.suffix.lower() in VIDEO_EXTS or child.name == "project.json" or child.suffix.lower() == ".json":
-                entries.append({"name": child.name, "path": str(child), "type": "file"})
+                try:
+                    size = child.stat().st_size
+                except OSError:
+                    size = None
+                entries.append({"name": child.name, "path": str(child), "type": "file", "size": size})
     except PermissionError as e:
         raise HTTPException(403, str(e)) from e
     parent = root.parent if root.parent != root else None
