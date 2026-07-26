@@ -28,6 +28,7 @@ Push-Location $Root
 try {
   python -m pip install -e ".[dev]" pyinstaller
   pyinstaller --noconfirm --clean packaging/windows/reelwright-api.spec
+  python packaging/windows/verify_frozen_modules.py
   pyinstaller --noconfirm --clean packaging/windows/launcher.spec
 
   Copy-Item -Recurse "dist\reelwright-api\*" $Bundle

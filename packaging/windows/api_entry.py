@@ -24,11 +24,14 @@ ensure_vendor_ffmpeg_on_path()
 
 import uvicorn
 
+# Import the app object (not a string) so PyInstaller traces reelwright.api.*
+from reelwright.api.app import app
+
 
 def main():
     # use_colors=False avoids ColourizedFormatter touching None stdio.
     uvicorn.run(
-        "reelwright.api.app:app",
+        app,
         host="127.0.0.1",
         port=8765,
         reload=False,
