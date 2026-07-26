@@ -8,12 +8,19 @@ export function mountStage(el, { copy, flashSaved }) {
   const zones = state.safezones || {};
   el.innerHTML = `<div class="stage-well settle">
       <div class="stage">
-        <video class="stage-video" muted playsinline controls loop preload="metadata"
+        <video class="stage-video" muted playsinline loop preload="metadata"
           src="/media/source?v=${encodeURIComponent(state.projectPath || "")}"></video>
         <div class="safe" hidden></div>
         <div class="inset"><span class="inset-handle" title="Drag to resize"></span></div>
         <div class="caption"></div>
       </div>
+    </div>
+    <div class="transport">
+      <button type="button" class="play-toggle" aria-label="${copy.play}">
+        <span class="icon-play" aria-hidden="true"></span>
+      </button>
+      <input type="range" class="scrub" min="0" max="1000" value="0" step="1" aria-label="Seek" />
+      <span class="mono timecode">0:00</span>
     </div>
     <div class="stage-controls">
       <label><input type="checkbox" class="sz-toggle" /> ${copy.safezones}</label>
@@ -32,6 +39,7 @@ export function mountStage(el, { copy, flashSaved }) {
   video.addEventListener("error", () => {
     toast("Could not load video preview — check the source file path", "danger");
   });
+  wireTransport(el, video, copy);
 
   function applyLayout() {
     const p = state.project;
@@ -53,6 +61,27 @@ export function mountStage(el, { copy, flashSaved }) {
     (e) => e.currentTarget.classList.remove("settle"),
     { once: true },
   );
+}
+
+function wireTransport(el, video, copy) {
+  const btn = el.querySelector(".play-toggle");
+  const scrub = el.querySelector(".scrub");
+  const time = el.querySelector(".timecode");
+  const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+  const paintState = () => {
+    btn.classList.toggle("playing", !video.paused);
+    btn.setAttribute("aria-label", video.paused ? copy.play : copy.pause);
+  };
+  btn.onclick = () => (video.paused ? video.play() : video.pause());
+  video.addEventListener("play", paintState);
+  video.addEventListener("pause", paintState);
+  video.addEventListener("timeupdate", () => {
+    if (video.duration) scrub.value = String((video.currentTime / video.duration) * 1000);
+    time.textContent = `${fmt(video.currentTime)} / ${fmt(video.duration || 0)}`;
+  });
+  scrub.oninput = () => {
+    if (video.duration) video.currentTime = (Number(scrub.value) / 1000) * video.duration;
+  };
 }
 
 function wireSafezones(el, safe, zones) {

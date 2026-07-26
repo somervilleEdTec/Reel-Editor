@@ -35,9 +35,18 @@ export async function renderEditor(root, st) {
     </header>
     <div class="banner-slot"></div>
     <div class="editor-grid">
-      <aside class="rail transcript-rail"></aside>
-      <section class="stage-wrap"></section>
-      <aside class="rail inspector"></aside>
+      <aside class="panel">
+        <div class="panel-head">${c.panelMedia}</div>
+        <div class="rail transcript-rail"></div>
+      </aside>
+      <section class="panel panel-stage">
+        <div class="panel-head">${c.panelPreview}</div>
+        <div class="stage-wrap"></div>
+      </section>
+      <aside class="panel">
+        <div class="panel-head">${c.panelProps}</div>
+        <div class="rail inspector"></div>
+      </aside>
     </div>
   </div>`;
 

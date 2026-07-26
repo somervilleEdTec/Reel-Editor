@@ -44,6 +44,7 @@ export function navigate(name, replace = false) {
   else if (location.hash !== next) location.hash = next;
   const app = document.getElementById("app");
   document.body.classList.toggle("branded", name === "setup" || name === "home");
+  document.body.classList.toggle("editor-chrome", name === "editor");
   const render = routes[name] || routes.home;
   render(app, state);
 }

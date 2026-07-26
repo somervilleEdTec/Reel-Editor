@@ -55,6 +55,12 @@
   --well: #0c120e;
   --well-edge: #26332c;
   --well-fg: #e4ece5;
+  /* Focused editor chrome (charcoal canvas behind light work panels). */
+  --chrome: #101713;
+  --chrome-raise: #16201a;
+  --chrome-edge: #263229;
+  --chrome-fg: #e4ece5;
+  --chrome-fg-soft: #9db3a6;
   --ok: #1e7a4f;
   --ok-surface: #e0efe6;
   --warn: #a85417;
