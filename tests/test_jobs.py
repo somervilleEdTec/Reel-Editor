@@ -29,3 +29,23 @@ def test_job_cancel():
     time.sleep(0.2)
     j = q.get(job.id)
     assert j.status in ("cancelled", "running", "done")
+
+
+def test_active_lists_only_unfinished_jobs_of_kind():
+    import threading
+    import time
+
+    q = JobQueue()
+    release = threading.Event()
+    job = q.submit("export", lambda j: release.wait(5), meta={"out": "/tmp/a.mp4"})
+    other = q.submit("transcribe", lambda j: None)
+    active = q.active("export")
+    assert [j.id for j in active] == [job.id]
+    assert active[0].meta["out"] == "/tmp/a.mp4"
+    release.set()
+    for _ in range(50):
+        if q.get(job.id).status == "done":
+            break
+        time.sleep(0.02)
+    assert q.active("export") == []
+    assert other.kind == "transcribe"

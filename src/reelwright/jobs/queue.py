@@ -15,6 +15,7 @@ class Job:
     error: str | None = None
     result: Any = None
     cancel: threading.Event = field(default_factory=threading.Event)
+    meta: dict = field(default_factory=dict)
 
 
 class JobQueue:
@@ -23,8 +24,10 @@ class JobQueue:
         self._lock = threading.Lock()
         self._max_jobs = max_jobs
 
-    def submit(self, kind: str, fn: Callable[[Job], Any]) -> Job:
-        job = Job(id=str(uuid.uuid4()), kind=kind)
+    def submit(
+        self, kind: str, fn: Callable[[Job], Any], meta: dict | None = None
+    ) -> Job:
+        job = Job(id=str(uuid.uuid4()), kind=kind, meta=meta or {})
         with self._lock:
             self._prune_locked()
             if len(self._jobs) >= self._max_jobs:
@@ -52,6 +55,15 @@ class JobQueue:
 
     def get(self, job_id: str) -> Job | None:
         return self._jobs.get(job_id)
+
+    def active(self, kind: str) -> list[Job]:
+        """Jobs of *kind* that are still queued or running."""
+        with self._lock:
+            return [
+                j
+                for j in self._jobs.values()
+                if j.kind == kind and j.status in ("queued", "running")
+            ]
 
     def cancel(self, job_id: str) -> bool:
         job = self._jobs.get(job_id)

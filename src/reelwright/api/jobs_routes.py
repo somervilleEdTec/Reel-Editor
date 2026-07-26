@@ -27,6 +27,8 @@ def enqueue_export(body: ExportJobBody):
     # Capture path at enqueue time so job uses saved project file
     project_path = app_module._STATE["path"]
     out, fmt = app_module.resolve_export_out(body.out, body.format)
+    if any(j.meta.get("out") == out for j in QUEUE.active("export")):
+        raise HTTPException(409, "An export to this file is already running")
 
     def work(job):
         job.progress = 0.1
@@ -38,7 +40,7 @@ def enqueue_export(body: ExportJobBody):
         return {"out": path, "format": fmt}
 
     try:
-        job = QUEUE.submit("export", work)
+        job = QUEUE.submit("export", work, meta={"out": out})
     except RuntimeError as e:
         raise HTTPException(429, str(e)) from e
     return {"job_id": job.id, "out": out, "format": fmt}

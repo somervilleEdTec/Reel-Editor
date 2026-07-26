@@ -82,6 +82,26 @@ def test_stderr_tail_keeps_last_lines():
     assert _stderr_tail("") == "no ffmpeg output"
 
 
+def test_duplicate_export_to_same_path_rejected(tmp_path):
+    import threading
+
+    from reelwright.jobs.queue import QUEUE
+
+    c = TestClient(app)
+    _open_project(c, tmp_path)
+    out, _ = resolve_export_out("master.mp4", "mp4")
+    release = threading.Event()
+    blocker = QUEUE.submit("export", lambda job: release.wait(5), meta={"out": out})
+    try:
+        res = c.post("/jobs/export", json={"out": "master.mp4", "format": "mp4"})
+        assert res.status_code == 409
+        res2 = c.post("/jobs/export", json={"out": "other.mp4", "format": "mp4"})
+        assert res2.status_code == 200  # different target file is fine
+    finally:
+        release.set()
+        QUEUE.cancel(blocker.id)
+
+
 @pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="ffmpeg not installed")
 def test_export_job_surfaces_ffmpeg_stderr(tmp_path):
     import time
