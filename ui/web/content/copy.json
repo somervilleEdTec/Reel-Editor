@@ -1,0 +1,72 @@
+{
+  "brand": "Reelwright",
+  "setup": {
+    "tagline": "Set up once. Edit reels forever.",
+    "ffmpeg": {
+      "title": "FFmpeg",
+      "ok": "Found and ready",
+      "missing": "FFmpeg not found. Install it or place LGPL builds in vendor/ffmpeg, then check again.",
+      "retry": "Check again"
+    },
+    "model": {
+      "title": "Transcription model",
+      "skip": "Skip for now",
+      "consent": "I agree to download the model for offline use",
+      "download": "Mark model ready"
+    },
+    "projects": {
+      "title": "Projects folder",
+      "change": "Change…",
+      "hint": "New reels are saved here."
+    },
+    "start": "Start creating →"
+  },
+  "home": {
+    "tagline": "Transcript-driven reels for teaching and short-form.",
+    "new": "New reel",
+    "recent": "Recent reels",
+    "emptyTitle": "Your first reel starts with a video.",
+    "emptyBody": "Pick a clip to create a project and generate a transcript."
+  },
+  "editor": {
+    "transcript": "Transcript",
+    "removed": "words removed",
+    "find": "Find in transcript",
+    "noWords": "No transcript yet",
+    "transcribe": "Transcribe",
+    "background": "Background layer",
+    "bgMedia": "Screen / media",
+    "bgCamera": "Camera",
+    "captions": "Captions",
+    "captionStyle": "Caption style",
+    "captionY": "Position",
+    "uppercase": "Uppercase",
+    "maxWords": "Words visible",
+    "safezones": "Safe zones",
+    "export": "Export",
+    "saved": "Saved",
+    "ffmpegBanner": "FFmpeg not found — exporting is disabled",
+    "fixSetup": "Fix this"
+  },
+  "export": {
+    "title": "Export reel",
+    "filename": "Filename",
+    "aspect": "Aspect",
+    "portrait": "Portrait 9:16",
+    "landscape": "Landscape 16:9",
+    "run": "Export",
+    "cancel": "Cancel",
+    "done": "Export complete",
+    "copyPath": "Copy path",
+    "retry": "Retry",
+    "close": "Close",
+    "copyDetails": "Copy details"
+  },
+  "filebrowser": {
+    "title": "Choose a file",
+    "paste": "Or paste a path",
+    "open": "Open",
+    "cancel": "Cancel",
+    "up": "Up"
+  }
+}

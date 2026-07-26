@@ -1,0 +1,71 @@
+@font-face {
+  font-family: "Bricolage Grotesque";
+  src: url("/assets/fonts/BricolageGrotesque-600.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Bricolage Grotesque";
+  src: url("/assets/fonts/BricolageGrotesque-700.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: url("/assets/fonts/IBMPlexSans-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: url("/assets/fonts/IBMPlexSans-500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: url("/assets/fonts/IBMPlexSans-600.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("/assets/fonts/IBMPlexMono-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --paper: #f4f6f1;
+  --paper-deep: #e5ecdf;
+  --ink: #14241c;
+  --ink-soft: #4b5d52;
+  --line: #cdd8cc;
+  --spruce: #1e5c40;
+  --spruce-hover: #174a33;
+  --spruce-tint: #dcebe2;
+  --raspberry: #c0246b;
+  --raspberry-tint: #f9e0ec;
+  --well: #0c120e;
+  --well-edge: #26332c;
+  --well-fg: #e4ece5;
+  --ok: #1e7a4f;
+  --ok-surface: #e0efe6;
+  --warn: #a85417;
+  --warn-surface: #faecdd;
+  --danger: #a52736;
+  --danger-surface: #f9e2e5;
+  --radius-s: 6px;
+  --radius-m: 10px;
+  --radius-pill: 999px;
+  --shadow-1: 0 1px 2px rgb(20 36 28 / 0.08), 0 6px 20px rgb(20 36 28 / 0.07);
+  --font-display: "Bricolage Grotesque", "Segoe UI", sans-serif;
+  --font-ui: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}

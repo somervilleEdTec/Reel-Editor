@@ -4,48 +4,18 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Reelwright</title>
-  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/css/tokens.css" />
+  <link rel="stylesheet" href="/css/base.css" />
+  <link rel="stylesheet" href="/css/components.css" />
+  <link rel="stylesheet" href="/css/views.css" />
 </head>
 <body>
-  <header>
-    <h1>Reelwright</h1>
-    <p class="sub">Transcript-driven reel editor</p>
-  </header>
-  <main>
-    <section class="row">
-      <label>Project path <input id="path" value="project.json" /></label>
-      <button id="open">Open</button>
-      <button id="export">Export</button>
-    </section>
-    <section id="warnings" class="warn" hidden></section>
-    <section class="grid">
-      <div>
-        <h2>Transcript</h2>
-        <div id="words" class="words" tabindex="0"></div>
-      </div>
-      <div>
-        <h2>Composition</h2>
-        <label>Background
-          <select id="bg">
-            <option value="media">media</option>
-            <option value="camera">camera</option>
-          </select>
-        </label>
-        <label>Caption preset
-          <select id="preset">
-            <option>sticker</option>
-            <option>block</option>
-            <option>clean</option>
-          </select>
-        </label>
-        <div class="stage" id="stage">
-          <div class="safe" id="safe"></div>
-          <div class="inset" id="inset"></div>
-          <div class="caption" id="caption">CAPTIONS</div>
-        </div>
-      </div>
-    </section>
-  </main>
-  <script src="/app.js"></script>
+  <div id="app"></div>
+  <script type="module">
+    import { boot } from "/js/router.js";
+    boot().catch((e) => {
+      document.getElementById("app").textContent = String(e.message || e);
+    });
+  </script>
 </body>
 </html>

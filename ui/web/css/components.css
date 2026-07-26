@@ -1,0 +1,174 @@
+button, .btn {
+  font: inherit;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-s);
+  padding: 0.55rem 1rem;
+  cursor: pointer;
+  background: var(--spruce);
+  color: #fff;
+}
+button:hover, .btn:hover { background: var(--spruce-hover); }
+button:disabled, .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+button.secondary, .btn.secondary {
+  background: transparent;
+  color: var(--spruce);
+  border: 1px solid var(--line);
+}
+button.accent, .btn.accent { background: var(--raspberry); }
+button.accent:hover, .btn.accent:hover { filter: brightness(0.95); }
+button:focus-visible, input:focus-visible, select:focus-visible, .chip:focus-visible {
+  outline: 2px solid #7dcea0;
+  outline-offset: 2px;
+}
+input, select {
+  font: inherit;
+  padding: 0.45rem 0.7rem;
+  border-radius: var(--radius-s);
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.45rem;
+  border-radius: 3px;
+  background: var(--spruce-tint);
+  border: none;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+.chip.deleted {
+  opacity: 0.45;
+  color: var(--ink-soft);
+  background-image: linear-gradient(currentColor, currentColor);
+  background-position: left center;
+  background-size: 100% 1.5px;
+  background-repeat: no-repeat;
+}
+.chip.striking {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-position: left center;
+  background-repeat: no-repeat;
+  background-size: 0% 1.5px;
+  transition: background-size 140ms ease-out, opacity 140ms ease-out, color 140ms ease-out;
+}
+.chip.striking.on { background-size: 100% 1.5px; opacity: 0.45; color: var(--ink-soft); }
+.toast-host {
+  position: fixed;
+  left: 50%;
+  bottom: 1.25rem;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+.toast {
+  pointer-events: auto;
+  padding: 0.65rem 1rem;
+  border-radius: var(--radius-m);
+  box-shadow: var(--shadow-1);
+  background: var(--ok-surface);
+  color: var(--ok);
+  max-width: 28rem;
+}
+.toast.danger { background: var(--danger-surface); color: var(--danger); }
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgb(20 36 28 / 0.35);
+  z-index: 40;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.sheet {
+  width: min(520px, 100%);
+  background: var(--paper);
+  border-radius: var(--radius-m) var(--radius-m) 0 0;
+  padding: 1.25rem;
+  box-shadow: var(--shadow-1);
+}
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgb(20 36 28 / 0.4);
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+.modal {
+  width: min(560px, 100%);
+  max-height: 80vh;
+  overflow: auto;
+  background: #fff;
+  border-radius: var(--radius-m);
+  padding: 1rem;
+  box-shadow: var(--shadow-1);
+}
+.progress {
+  height: 12px;
+  border-radius: var(--radius-pill);
+  background: var(--line);
+  overflow: hidden;
+}
+.progress > span {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      var(--raspberry) 0 10px,
+      #a01e58 10px 14px,
+      var(--raspberry) 14px 24px
+    );
+  background-size: 24px 100%;
+  transition: width 200ms ease;
+}
+.progress.running > span {
+  animation: filmScroll 1.2s linear infinite;
+}
+@keyframes filmScroll {
+  from { background-position: 0 0; }
+  to { background-position: 24px 0; }
+}
+.banner {
+  padding: 0.65rem 1rem;
+  background: var(--warn-surface);
+  color: var(--warn);
+  border-radius: var(--radius-s);
+  margin: 0.5rem 1rem;
+}
+.swatch {
+  width: 100%;
+  text-align: center;
+  padding: 0.55rem;
+  border-radius: var(--radius-s);
+  border: 2px solid transparent;
+  cursor: pointer;
+  font-weight: 700;
+  color: #fff;
+}
+.swatch.active { border-color: var(--raspberry); }
+.seg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+}
+.seg button {
+  background: #fff;
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+.seg button.active {
+  background: var(--spruce-tint);
+  border-color: var(--spruce);
+  color: var(--spruce);
+}

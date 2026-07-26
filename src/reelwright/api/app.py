@@ -8,7 +8,10 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from reelwright.models.project import Project
+from reelwright.paths import ensure_vendor_ffmpeg_on_path, ui_web_dir
 from reelwright.render.ffmpeg import export_master
+
+ensure_vendor_ffmpeg_on_path()
 
 app = FastAPI(title="Reelwright", version="0.1.0")
 app.add_middleware(
@@ -19,8 +22,10 @@ app.add_middleware(
 )
 
 from reelwright.api.jobs_routes import router as jobs_router
+from reelwright.api.setup_routes import router as setup_router
 
 app.include_router(jobs_router)
+app.include_router(setup_router)
 
 _STATE: dict = {"path": "project.json", "project": None}
 
@@ -138,6 +143,6 @@ def do_export(body: ExportBody):
     return {"out": path}
 
 
-ui_dir = Path(__file__).resolve().parents[3] / "ui" / "web"
+ui_dir = ui_web_dir()
 if ui_dir.is_dir():
     app.mount("/", StaticFiles(directory=str(ui_dir), html=True), name="ui")

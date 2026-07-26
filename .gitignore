@@ -4,6 +4,10 @@ __pycache__/
 .eggs/
 dist/
 build/
+vendor/ffmpeg/*
+!vendor/ffmpeg/README.md
+vendor/models/*
+!vendor/models/README.md
 .pytest_cache/
 artifacts/debug/
 *.ass

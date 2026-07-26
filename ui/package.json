@@ -2,5 +2,5 @@
   "name": "reelwright-ui",
   "private": true,
   "version": "0.1.0",
-  "description": "Tauri shell hosts ui/web against local FastAPI on 127.0.0.1:8765. Install Rust + tauri-cli to build the desktop wrapper; web UI works in a browser without Tauri."
+  "description": "Browser UI for local FastAPI. Windows Setup.exe launches the API and opens this UI. Optional Tauri shell is out of scope for the current packaging path."
 }

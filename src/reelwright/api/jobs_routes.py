@@ -16,19 +16,46 @@ class ExportJobBody(BaseModel):
     aspect: str | None = None
 
 
+class TranscribeJobBody(BaseModel):
+    backend: str = "local"
+
+
 @router.post("/export")
 def enqueue_export(body: ExportJobBody):
     project = app_module._proj()
+    # Capture path at enqueue time so job uses saved project file
+    project_path = app_module._STATE["path"]
 
     def work(job):
         job.progress = 0.1
         if job.cancel.is_set():
             return None
-        path = export_master(project, body.out, aspect=body.aspect)
+        p = Project.load(project_path) if project_path else project
+        path = export_master(p, body.out, aspect=body.aspect)
         job.progress = 1.0
         return {"out": path}
 
     job = QUEUE.submit("export", work)
+    return {"job_id": job.id}
+
+
+@router.post("/transcribe")
+def enqueue_transcribe(body: TranscribeJobBody):
+    from reelwright.workflows import transcribe_project
+
+    path = app_module._STATE["path"]
+    app_module._proj()
+
+    def work(job):
+        job.progress = 0.1
+        if job.cancel.is_set():
+            return None
+        updated = transcribe_project(path, backend=body.backend)
+        app_module._STATE["project"] = updated
+        job.progress = 1.0
+        return {"words": len(updated.words)}
+
+    job = QUEUE.submit("transcribe", work)
     return {"job_id": job.id}
 
 

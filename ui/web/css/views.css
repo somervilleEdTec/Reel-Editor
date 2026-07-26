@@ -1,0 +1,165 @@
+.view {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 3rem;
+}
+.view.setup, .view.home { padding-left: 2.5rem; }
+.setup-steps { margin-top: 2rem; display: flex; flex-direction: column; gap: 0.75rem; }
+.setup-step {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.75rem;
+  align-items: start;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--line);
+}
+.setup-step.active {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  padding: 1rem;
+  box-shadow: var(--shadow-1);
+}
+.setup-num {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--spruce-tint);
+  color: var(--spruce);
+  font-weight: 600;
+}
+.setup-actions { margin-top: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.home-actions { margin: 1.5rem 0; }
+.recent-list { list-style: none; padding: 0; margin: 1rem 0 0; }
+.recent-list li button {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  color: var(--ink);
+  border: none;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  padding: 0.85rem 0;
+}
+.recent-list li button:hover { background: transparent; color: var(--spruce); }
+.empty-state { margin-top: 2rem; }
+.editor-shell {
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  min-height: 100vh;
+  max-width: none;
+  padding: 0;
+}
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--line);
+  background: rgb(244 246 241 / 0.92);
+  backdrop-filter: blur(6px);
+}
+.topbar .mark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--spruce);
+  text-decoration: none;
+  font-size: 1.15rem;
+}
+.topbar .proj-name { font-weight: 600; }
+.topbar .saved { color: var(--ok); font-size: 0.85rem; opacity: 0; transition: opacity 200ms; }
+.topbar .saved.show { opacity: 1; }
+.topbar .spacer { flex: 1; }
+.editor-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 300px) 1fr minmax(220px, 280px);
+  gap: 1rem;
+  padding: 1rem;
+  min-height: 0;
+}
+.rail {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.rail-head { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.count-chip {
+  font-size: 0.75rem;
+  background: var(--raspberry-tint);
+  color: var(--raspberry);
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-pill);
+}
+.words {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  overflow: auto;
+  max-height: calc(100vh - 10rem);
+  padding: 0.35rem;
+}
+.stage-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
+.stage-well {
+  width: min(100%, 360px);
+  aspect-ratio: 9 / 16;
+  background:
+    radial-gradient(circle at 50% 40%, var(--well-edge), var(--well));
+  border-radius: var(--radius-m);
+  position: relative;
+  overflow: hidden;
+  color: var(--well-fg);
+}
+.stage-well.settle {
+  animation: stageSettle 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes stageSettle {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+.stage { position: absolute; inset: 0; }
+.inset {
+  position: absolute;
+  left: 6%;
+  top: 52%;
+  width: 50%;
+  aspect-ratio: 9 / 16;
+  background: #3d5a4a;
+  border: 2px solid #9fd0b0;
+  cursor: grab;
+}
+.caption {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 60%;
+  text-align: center;
+  font-weight: 700;
+  cursor: ns-resize;
+}
+.safe {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+}
+.inspector .cluster { margin-bottom: 1.25rem; }
+.inspector .field { display: flex; flex-direction: column; gap: 0.35rem; margin: 0.5rem 0; }
+.swatches { display: grid; gap: 0.4rem; }
+.stage-controls { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+.fs-list { list-style: none; padding: 0; margin: 0.5rem 0; max-height: 40vh; overflow: auto; }
+.fs-list button {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  color: var(--ink);
+  border: none;
+  border-radius: 0;
+  padding: 0.4rem 0.2rem;
+  border-bottom: 1px solid var(--line);
+}
+@media (max-width: 900px) {
+  .editor-grid { grid-template-columns: 1fr; }
+  .words { max-height: 240px; }
+}

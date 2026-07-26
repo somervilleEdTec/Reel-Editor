@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-from pathlib import Path
-
-from reelwright.ingest.probe import probe
-from reelwright.models.project import Project
+from reelwright.workflows import init_project
 
 
 def register(sub):
@@ -15,9 +12,6 @@ def register(sub):
 
 
 def run(args) -> int:
-    src = probe(args.video, source_id="src_1", role=args.role)
-    project = Project(sources=[src])
-    Path(args.out).parent.mkdir(parents=True, exist_ok=True)
-    project.save(args.out)
+    init_project(args.video, args.out, role=args.role)
     print(args.out)
     return 0

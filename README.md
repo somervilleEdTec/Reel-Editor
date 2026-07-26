@@ -8,10 +8,18 @@ Phases **0–4** implemented in-repo (CLI + local FastAPI/web UI). Desktop Tauri
 
 ## Install
 
+**Windows (end users):** install `ReelwrightSetup.exe` (see [docs/packaging-windows.md](docs/packaging-windows.md)). The app opens in your browser at `http://127.0.0.1:8765/`.
+
+**Developers:**
+
 ```bash
 pip install -e ".[dev]"
 # requires ffmpeg/ffprobe on PATH
+python3 -m reelwright.api.server
+# open http://127.0.0.1:8765/
 ```
+
+First launch walks through FFmpeg check, optional model consent, and projects folder.
 
 ## Phase 0 — captioned master
 
@@ -38,6 +46,8 @@ reelwright export project.json -o master.mp4
 python3 -m reelwright.api.server
 # open http://127.0.0.1:8765/
 ```
+
+Product UI flows: first-run setup → home (new/recent reels) → editor → export (job queue).
 
 ## Phase 2 — jobs
 

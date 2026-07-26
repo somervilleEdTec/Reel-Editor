@@ -12,6 +12,7 @@
 ## Fonts
 - Caption presets ship with **Arial** as a safe system fallback for Phase 0.
 - For branded presets (Anton / Inter), embed only fonts with OFL or equivalent redistribution rights and document paths under `assets/fonts/`.
+- Product UI ships OFL **Bricolage Grotesque** and **IBM Plex** WOFF2 under `ui/web/assets/fonts/`.
 
 ## Cloud opt-in
 - Azure Speech / Azure OpenAI: customer subscription; no keys in repo. Data egress only when user selects cloud backends.

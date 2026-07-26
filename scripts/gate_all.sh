@@ -7,4 +7,6 @@ for n in 0 1b 1 2 3 4; do
   echo "=== gate_phase${n} ==="
   ./scripts/gate_phase${n}.sh 2>&1 | tee "artifacts/debug/gate_phase${n}.log"
 done
+echo "=== gate_packaging ==="
+./scripts/gate_packaging.sh 2>&1 | tee "artifacts/debug/gate_packaging.log"
 echo "All gates passed."
