@@ -115,6 +115,11 @@ class CaptionsBody(BaseModel):
     uppercase: bool | None = None
 
 
+class ExportSettingsBody(BaseModel):
+    transition: Literal["cut", "crossfade"] | None = None
+    transition_s: float | None = None
+
+
 class ExportBody(BaseModel):
     out: str = "master.mp4"
     aspect: str | None = None
@@ -205,6 +210,17 @@ def update_captions(body: CaptionsBody):
     p.captions = p.captions.model_copy(update=data)
     _save(p)
     return p.captions.model_dump()
+
+
+@app.post("/export-settings")
+def update_export_settings(body: ExportSettingsBody):
+    p = _proj()
+    data = {k: v for k, v in body.model_dump().items() if v is not None}
+    if "transition_s" in data and data["transition_s"] < 0:
+        raise HTTPException(400, "transition_s must be non-negative")
+    p.export = p.export.model_copy(update=data)
+    _save(p)
+    return p.export.model_dump()
 
 
 @app.get("/safezones")

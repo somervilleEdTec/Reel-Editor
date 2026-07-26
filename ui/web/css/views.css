@@ -178,6 +178,21 @@
   z-index: 4;
 }
 .inspector .cluster { margin-bottom: 1.25rem; }
+.inspector .inline-check { flex-direction: row; align-items: center; gap: 0.5rem; }
+.inspector .compact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
+.inspector .empty-line { color: var(--ink-soft); font-size: 0.85rem; margin: 0.35rem 0; }
+.inspector .title-row,
+.inspector .candidate-row,
+.inspector .snapshot-row {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--line);
+}
+.inspector .candidate-row small,
+.inspector .snapshot-row small { color: var(--ink-soft); }
+.inspector .snapshot-save { display: grid; gap: 0.4rem; }
+.inspector .tool-status { margin-top: 0.5rem; }
 .swatches { display: grid; gap: 0.4rem; }
 .stage-controls { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
 /* Focused editor chrome: charcoal canvas, light work panels (CapCut-style layout). */

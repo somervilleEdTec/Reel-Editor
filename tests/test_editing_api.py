@@ -56,6 +56,17 @@ def test_edl_endpoint(tmp_path):
     assert result.json()["output_duration_s"] > 0
 
 
+def test_export_settings_transition(tmp_path):
+    client = _open(tmp_path, [])
+    result = client.post(
+        "/export-settings",
+        json={"transition": "crossfade", "transition_s": 0.4},
+    )
+    assert result.status_code == 200
+    assert result.json()["transition"] == "crossfade"
+    assert client.get("/project").json()["export"]["transition_s"] == 0.4
+
+
 def test_assembly_import_and_reorder(tmp_path, monkeypatch):
     paths = [tmp_path / "one.mp4", tmp_path / "two.mp4"]
     for path in paths:
