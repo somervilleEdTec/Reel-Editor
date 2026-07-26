@@ -41,7 +41,10 @@ export async function boot() {
 export function navigate(name, replace = false) {
   const next = `#/${name}`;
   if (replace) history.replaceState(null, "", next);
-  else if (location.hash !== next) location.hash = next;
+  else if (location.hash !== next) {
+    location.hash = next; // hashchange handler re-enters navigate and renders once
+    return;
+  }
   const app = document.getElementById("app");
   document.body.classList.toggle("branded", name === "setup" || name === "home");
   document.body.classList.toggle("editor-chrome", name === "editor");
