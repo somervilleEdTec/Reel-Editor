@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import os
 from importlib import resources
 from pathlib import Path
 
@@ -11,10 +10,11 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from reelwrite.api import app as app_module
+from reelwrite.api.fs_access import is_allowed as _is_allowed
 from reelwrite.ffmpeg_check import ffmpeg_status
 from reelwrite.jobs.queue import QUEUE
 from reelwrite.media_formats import VIDEO_EXTS
-from reelwrite.paths import app_data_dir, default_projects_dir, normalize_user_path, vendor_dir
+from reelwrite.paths import app_data_dir, normalize_user_path, vendor_dir
 from reelwrite.setup_state import load_setup, projects_dir_from_state, save_setup
 from reelwrite.workflows import init_project, transcribe_project
 
@@ -137,14 +137,24 @@ def list_projects():
 
 @router.post("/projects/create")
 def create_project(body: CreateProjectBody):
+    raw = (body.video_path or "").strip()
+    if not raw or _looks_like_selection_label(raw):
+        raise HTTPException(
+            400,
+            "Choose a video in the browser, or paste a full file path.",
+        )
     try:
-        video = normalize_user_path(body.video_path).resolve(strict=False)
+        video = normalize_user_path(raw).resolve(strict=False)
     except ValueError as e:
         raise HTTPException(400, str(e)) from e
     if video.is_dir():
         raise HTTPException(400, "Path is a folder — choose a video file")
     if not video.is_file():
-        raise HTTPException(404, f"Video file not found: {video}")
+        raise HTTPException(
+            404,
+            f"Video file not found: {video}. "
+            "Use the folder list or paste a full path to an existing video.",
+        )
     if video.suffix.lower() not in VIDEO_EXTS:
         raise HTTPException(
             400,
@@ -182,37 +192,12 @@ def create_project(body: CreateProjectBody):
     return {"job_id": job.id, "path": str(project_path)}
 
 
-def _allowed_roots() -> list[Path]:
-    roots = [
-        Path.home().resolve(),
-        projects_dir_from_state().resolve(),
-        default_projects_dir().resolve(),
-        app_data_dir().resolve(),
-    ]
-    extra = os.environ.get("REELWRITE_FS_ROOTS")
-    if extra:
-        for part in extra.split(os.pathsep):
-            if part.strip():
-                roots.append(Path(part).expanduser().resolve())
-    # unique
-    out: list[Path] = []
-    for r in roots:
-        if r not in out:
-            out.append(r)
-    return out
-
-
-def _is_allowed(path: Path) -> bool:
-    try:
-        resolved = path.resolve()
-    except Exception:
-        return False
-    for root in _allowed_roots():
-        try:
-            resolved.relative_to(root)
-            return True
-        except ValueError:
-            continue
+def _looks_like_selection_label(raw: str) -> bool:
+    s = raw.strip().lower()
+    if "selected" in s and not any(ch in raw for ch in "\\/"):
+        return True
+    if s in {"files selected", "file selected"}:
+        return True
     return False
 
 

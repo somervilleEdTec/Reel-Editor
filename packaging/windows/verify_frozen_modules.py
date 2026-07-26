@@ -11,6 +11,8 @@ REQUIRED = (
     "reelwrite.api.jobs_routes",
     "reelwrite.api.setup_routes",
     "reelwrite.api.media_routes",
+    "reelwrite.api.fs_access",
+    "reelwrite.api.fs_routes",
 )
 
 

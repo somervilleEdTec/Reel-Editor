@@ -9,9 +9,8 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-from reelwrite.api.setup_routes import _is_allowed
+from reelwrite.api.fs_access import is_allowed, list_places, resolve_fs_path
 from reelwrite.paths import app_data_dir
-from reelwrite.security.paths import _BLOCKED
 
 router = APIRouter(prefix="/fs")
 
@@ -20,15 +19,16 @@ class RevealBody(BaseModel):
     path: str
 
 
+class ResolveBody(BaseModel):
+    path: str
+
+
 def _allowed_file(raw: str) -> Path:
     try:
         path = Path(raw).expanduser().resolve()
     except (OSError, ValueError) as exc:
         raise HTTPException(400, "Invalid path") from exc
-    text = str(path)
-    if any(pat.search(text) for pat in _BLOCKED):
-        raise HTTPException(403, "Blocked system path")
-    if not _is_allowed(path):
+    if not is_allowed(path):
         raise HTTPException(403, "Path outside allowed roots")
     if not path.exists():
         raise HTTPException(404, "Path not found")
@@ -45,6 +45,19 @@ def _midpoint(path: Path) -> float:
         return max(0.0, float(result.stdout.strip()) / 2)
     except (OSError, ValueError, subprocess.SubprocessError):
         return 0.0
+
+
+@router.get("/places")
+def places():
+    return {"places": list_places()}
+
+
+@router.post("/resolve")
+def resolve_path(body: ResolveBody):
+    result = resolve_fs_path(body.path)
+    if not result["ok"] and result["kind"] in {"invalid", "denied"}:
+        raise HTTPException(400 if result["kind"] == "invalid" else 403, result["error"])
+    return result
 
 
 @router.get("/thumb")

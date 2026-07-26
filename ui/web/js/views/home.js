@@ -1,7 +1,7 @@
 import { get, post } from "../api.js";
 import { setState } from "../store.js";
 import { navigate } from "../router.js";
-import { openFileBrowser } from "../components/filebrowser.js";
+import { openFileBrowser, looksLikePath } from "../components/filebrowser.js";
 import { isVideoName } from "../formats.js";
 import { progressBar, setProgress } from "../components/progress.js";
 import { toast } from "../components/toast.js";
@@ -48,7 +48,6 @@ export async function renderHome(root, state) {
   root.querySelector(".new").onclick = () => {
     openFileBrowser({
       title: c.new,
-      startDir: list.projects_dir,
       filter: (e) => isVideoName(e.name),
       onPick: (videoPath) => createReel(root, videoPath),
     });
@@ -56,6 +55,10 @@ export async function renderHome(root, state) {
 }
 
 async function createReel(root, videoPath) {
+  if (!looksLikePath(videoPath) || !isVideoName(videoPath)) {
+    toast("Choose a video file from the browser, or paste a full video path.", "danger");
+    return;
+  }
   const box = root.querySelector(".create-progress");
   box.hidden = false;
   box.innerHTML = "";
