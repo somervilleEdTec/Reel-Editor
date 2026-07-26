@@ -1,6 +1,6 @@
 {
   "name": "reelwrite-ui",
   "private": true,
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Vanilla-JS UI for the local FastAPI. The Tauri 2 shell in src-tauri/ starts the API and loads this UI from http://127.0.0.1:8765/; the browser launcher is the fallback."
 }
