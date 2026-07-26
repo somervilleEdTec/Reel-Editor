@@ -4,7 +4,10 @@ import { openSheet } from "../../components/sheet.js";
 import { openFileBrowser } from "../../components/filebrowser.js";
 import { progressBar, setProgress } from "../../components/progress.js";
 import { toast } from "../../components/toast.js";
-import { OUTPUT_FORMATS } from "../../formats.js";
+import { OUTPUT_FORMATS, VIDEO_EXTS } from "../../formats.js";
+
+// Only strip known media extensions — never dotted name parts like "take.2".
+const MEDIA_EXT_RE = new RegExp(`\\.(${VIDEO_EXTS.join("|")})$`, "i");
 
 export async function openExport({ copy }) {
   let formats = OUTPUT_FORMATS;
@@ -49,7 +52,8 @@ export async function openExport({ copy }) {
       btn.classList.add("active");
       format = btn.dataset.fmt;
       const ext = formats.find((f) => f.key === format)?.ext || `.${format}`;
-      outInput.value = outInput.value.trim().replace(/\.\w+$/, "") + ext;
+      const base = outInput.value.trim().replace(MEDIA_EXT_RE, "") || "master";
+      outInput.value = base + ext;
     };
   });
   body.querySelectorAll("[data-aspect]").forEach((btn) => {
