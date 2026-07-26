@@ -68,7 +68,13 @@
   text-decoration: none;
   font-size: 1.15rem;
 }
-.topbar .proj-name { font-weight: 600; }
+.topbar .proj-name {
+  font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .topbar .saved { color: var(--ok); font-size: 0.85rem; opacity: 0; transition: opacity 200ms; }
 .topbar .saved.show { opacity: 1; }
 .topbar .spacer { flex: 1; }

@@ -72,7 +72,10 @@ function wireTransport(el, video, copy) {
     btn.classList.toggle("playing", !video.paused);
     btn.setAttribute("aria-label", video.paused ? copy.play : copy.pause);
   };
-  btn.onclick = () => (video.paused ? video.play() : video.pause());
+  btn.onclick = () => {
+    if (video.paused) video.play().catch(() => {}); // error listener already toasts
+    else video.pause();
+  };
   video.addEventListener("play", paintState);
   video.addEventListener("pause", paintState);
   video.addEventListener("timeupdate", () => {
