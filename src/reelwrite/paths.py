@@ -141,15 +141,18 @@ def _windows_abs_path(s: str) -> Path:
     """Return a usable Path for a Windows absolute/UNC string."""
     if sys.platform == "win32":
         return Path(s)
-    # WSL / similar: C:\Users\x → /mnt/c/Users/x
+    # WSL / similar: C:\Users\x → /mnt/c/Users/x (also /cygdrive/c)
     m = _WIN_DRIVE.match(s)
     if m:
         drive = s[0].lower()
         rest = s[2:].lstrip("\\/").replace("\\", "/")
-        mapped = Path("/mnt") / drive / rest
-        if mapped.exists() or (Path("/mnt") / drive).exists():
-            return mapped
+        for base in (Path("/mnt") / drive, Path("/cygdrive") / drive):
+            mapped = base / rest if rest else base
+            if mapped.exists() or base.exists():
+                return mapped if rest else base
     raise ValueError(
-        f"Windows path cannot be used on this system: {s}. "
-        "Choose a file that exists on this machine (or run Reelwrite on Windows)."
+        f"Windows path cannot be used on this system ({sys.platform}): {s}. "
+        "Reelwrite is not running as a Windows API — if you launched the Windows app, "
+        "close whatever is using port 8765 and restart Reelwrite. "
+        "Otherwise pick a video via Places or This PC on this machine."
     )

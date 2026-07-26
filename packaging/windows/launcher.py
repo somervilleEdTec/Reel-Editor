@@ -28,11 +28,32 @@ def _root() -> Path:
 
 
 def _healthy() -> bool:
+    info = _health_info()
+    return bool(info and info.get("ok"))
+
+
+def _health_info() -> dict | None:
     try:
         with urllib.request.urlopen(HEALTH, timeout=1) as r:
-            return r.status == 200
+            if r.status != 200:
+                return None
+            import json
+
+            return json.loads(r.read().decode("utf-8"))
     except Exception:
+        return None
+
+
+def _api_platform_ok(info: dict | None) -> bool:
+    """Refuse to reuse a non-Windows API on this Windows launcher."""
+    if not info or not info.get("ok"):
         return False
+    platform = info.get("platform")
+    if platform is None:
+        return True  # older API
+    if sys.platform == "win32":
+        return platform == "win32"
+    return platform != "win32"
 
 
 def _lifecycle():
@@ -93,6 +114,16 @@ def main() -> int:
         lifecycle.write_pid_file(os.getpid())
     proc = None
     owns_api = False
+    existing = _health_info()
+    if existing and existing.get("ok") and not _api_platform_ok(existing):
+        print(
+            f"Port {PORT} is serving a Reelwrite API for "
+            f"{existing.get('platform', 'unknown')}, but this launcher needs "
+            f"{sys.platform}. Close that process and retry.",
+            file=sys.stderr,
+        )
+        _shutdown(proc, lifecycle, owns_api=owns_api)
+        return 1
     if not _healthy():
         api = root / "reelwrite-api.exe"
         cmd = [str(api)] if api.exists() else [sys.executable, "-m", "reelwrite.api.server"]

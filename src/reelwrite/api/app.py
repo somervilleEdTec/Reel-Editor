@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from typing import Literal
 
@@ -8,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ValidationError
 
+from reelwrite import __version__
 from reelwrite.media_formats import (
     DEFAULT_OUTPUT_FORMAT,
     OUTPUT_FORMATS,
@@ -15,13 +17,13 @@ from reelwrite.media_formats import (
     format_for_ext,
 )
 from reelwrite.models.project import Project
-from reelwrite.paths import ensure_vendor_ffmpeg_on_path, ui_web_dir
+from reelwrite.paths import ensure_vendor_ffmpeg_on_path, is_frozen, ui_web_dir
 from reelwrite.render.ffmpeg import export_master
 from reelwrite.security.paths import PathDenied, resolve_workspace_path
 
 ensure_vendor_ffmpeg_on_path()
 
-app = FastAPI(title="Reelwrite", version="3.0.2")
+app = FastAPI(title="Reelwrite", version=__version__)
 # Same-origin UI + optional Tauri/local shells only — never "*".
 app.add_middleware(
     CORSMiddleware,
@@ -151,7 +153,13 @@ def resolve_export_out(out: str, fmt: str | None) -> tuple[str, str]:
 
 @app.get("/health")
 def health():
-    return {"ok": True}
+    """Liveness probe. Includes platform so the Windows shell refuses a foreign API."""
+    return {
+        "ok": True,
+        "version": __version__,
+        "platform": sys.platform,
+        "frozen": is_frozen(),
+    }
 
 
 @app.post("/project/open")

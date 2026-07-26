@@ -10,6 +10,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from reelwrite.api.fs_access import is_allowed, list_places, resolve_fs_path
+from reelwrite.api.native_pick import pick_paths
 from reelwrite.paths import app_data_dir
 
 router = APIRouter(prefix="/fs")
@@ -21,6 +22,11 @@ class RevealBody(BaseModel):
 
 class ResolveBody(BaseModel):
     path: str
+
+
+class PickBody(BaseModel):
+    allow_dirs: bool = False
+    multiple: bool = True
 
 
 def _allowed_file(raw: str) -> Path:
@@ -52,12 +58,31 @@ def places():
     return {"places": list_places()}
 
 
+@router.get("/capabilities")
+def capabilities():
+    return {
+        "native_pick": sys.platform == "win32",
+        "reveal": sys.platform == "win32",
+        "platform": sys.platform,
+    }
+
+
 @router.post("/resolve")
 def resolve_path(body: ResolveBody):
     result = resolve_fs_path(body.path)
     if not result["ok"] and result["kind"] in {"invalid", "denied"}:
         raise HTTPException(400 if result["kind"] == "invalid" else 403, result["error"])
     return result
+
+
+@router.post("/pick")
+def pick(body: PickBody):
+    """Native OS file/folder dialog — preferred on Windows over pasted Explorer paths."""
+    try:
+        paths = pick_paths(allow_dirs=body.allow_dirs, multiple=body.multiple and not body.allow_dirs)
+    except RuntimeError as exc:
+        raise HTTPException(400, str(exc)) from exc
+    return {"paths": paths, "cancelled": len(paths) == 0}
 
 
 @router.get("/thumb")
