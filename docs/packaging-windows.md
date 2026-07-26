@@ -1,11 +1,12 @@
 # Windows packaging path
 
-End users install with **ReelwrightSetup.exe** (Inno Setup). Developers can still run from source.
+End users install with **ReelwrightSetup.exe** (Inno Setup) **after it is built**.
+That `.exe` is a build artifact under `dist/` (gitignored) — it is not committed to the repository.
 
 ## End-user install
 
 1. Build on a Windows machine (or CI Windows runner): `powershell -ExecutionPolicy Bypass -File packaging/windows/build.ps1`
-2. Distribute `dist/windows/installer/ReelwrightSetup.exe`
+2. Distribute `dist/windows/installer/ReelwrightSetup.exe` (release download / shared drive — do not commit)
 3. Installer writes to `%LOCALAPPDATA%\Reelwright` (per-user, no admin)
 4. Start Menu **Reelwright** runs the launcher: starts local API on `127.0.0.1:8765`, opens the default browser
 

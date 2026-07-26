@@ -7,15 +7,72 @@ http://127.0.0.1:8765/ and does not require an internet connection for
 normal use.
 
 
+IMPORTANT — where is ReelwrightSetup.exe?
+-----------------------------------------
+ReelwrightSetup.exe is NOT stored in this GitHub repository.
+
+Reasons:
+  - It is a large Windows build artifact (PyInstaller + Inno Setup).
+  - The dist/ folder is listed in .gitignore on purpose.
+  - Binaries must be built on a Windows machine (see section C).
+
+What IS in the repo:
+  - Source code
+  - packaging/windows/ scripts that CREATE the installer
+  - Placeholders under vendor/ffmpeg/ and vendor/models/ (README only)
+
+Until someone builds and shares ReelwrightSetup.exe, install from
+source using section A below.
+
+
 ----------------------------------------------------------------
-A. Windows end users (recommended)
+A. Install from this repository (works today)
 ----------------------------------------------------------------
 
-Use this path if you have ReelwrightSetup.exe.
+Use this on Windows, macOS, or Linux while developing or until an
+installer build is published.
+
+1. Prerequisites
+   - Python 3.11 or newer
+   - ffmpeg and ffprobe on your PATH
+     (Windows: you may later place LGPL builds in vendor/ffmpeg/)
+   - Git
+
+2. Clone the repository
+   git clone https://github.com/somervilleEdTec/Reel-Editor.git
+   cd Reel-Editor
+
+3. Install the Python package
+   pip install -e ".[dev]"
+
+4. Start the local server
+   python -m reelwright.api.server
+   (or: python3 -m reelwright.api.server)
+
+5. Open the UI
+   - Browser: http://127.0.0.1:8765/
+   - Complete first-run setup (FFmpeg check, optional model consent,
+     projects folder), then use Home → Editor → Export.
+
+6. Optional CLI (no UI)
+   reelwright init video.mp4 -o project.json
+   reelwright transcribe project.json
+   reelwright export project.json -o master.mp4
+
+
+----------------------------------------------------------------
+B. Windows installer (only AFTER it has been built)
+----------------------------------------------------------------
+
+Use this only if you already have ReelwrightSetup.exe from a team
+release or from a local build (section C). You will not find this
+file by browsing the GitHub repo.
 
 1. Get the installer
-   - Obtain ReelwrightSetup.exe from your school/team distribution
-     (or from a built release under dist/windows/installer/).
+   - From your school/team distribution, OR
+   - From a build output folder:
+       dist\windows\installer\ReelwrightSetup.exe
+     (created on a Windows PC by packaging/windows/build.ps1)
 
 2. Run the installer
    - Double-click ReelwrightSetup.exe.
@@ -25,8 +82,8 @@ Use this path if you have ReelwrightSetup.exe.
    - Optional: tick "Create a desktop icon" if offered.
 
 3. Start Reelwright
-   - Open Start Menu and choose "Reelwright"
-     (or use the desktop shortcut if you created one).
+   - Open Start Menu → Reelwright
+     (or the desktop shortcut if you created one).
    - The launcher starts a local API on 127.0.0.1:8765 and opens
      your default browser.
 
@@ -43,58 +100,28 @@ Use this path if you have ReelwrightSetup.exe.
 
 
 ----------------------------------------------------------------
-B. Developers / run from source (Windows, macOS, or Linux)
-----------------------------------------------------------------
-
-Use this path if you are developing or do not have the Windows installer.
-
-1. Prerequisites
-   - Python 3.11 or newer
-   - ffmpeg and ffprobe available on your PATH
-     (or place LGPL builds under vendor/ffmpeg/ as documented there)
-   - Git (to clone the repository)
-
-2. Get the code
-   git clone https://github.com/somervilleEdTec/Reel-Editor.git
-   cd Reel-Editor
-
-3. Install Python package (editable, with test extras)
-   pip install -e ".[dev]"
-
-4. Start the local server
-   python -m reelwright.api.server
-   (or: python3 -m reelwright.api.server)
-
-5. Open the UI
-   - In a browser, go to: http://127.0.0.1:8765/
-   - Complete first-run setup (FFmpeg check, optional model consent,
-     projects folder), then use Home → Editor → Export.
-
-6. Optional: CLI workflow (without the UI)
-   reelwright init video.mp4 -o project.json
-   reelwright transcribe project.json
-   reelwright export project.json -o master.mp4
-
-
-----------------------------------------------------------------
-C. Building the Windows installer (maintainers)
+C. Build ReelwrightSetup.exe (maintainers, Windows only)
 ----------------------------------------------------------------
 
 Run these steps on a Windows machine (or Windows CI runner).
+This is how the missing .exe is produced.
 
 1. Install build tools
    - Python 3.11+
    - pip install -e ".[dev]" pyinstaller
    - Inno Setup 6 (https://jrsoftware.org/isinfo.php)
-   - Optional: copy LGPL ffmpeg/ffprobe into vendor/ffmpeg/ before building
+   - Optional: copy LGPL ffmpeg.exe and ffprobe.exe into
+     vendor\ffmpeg\ before building (see vendor/ffmpeg/README.md)
 
 2. Build bundle + installer
    powershell -ExecutionPolicy Bypass -File packaging/windows/build.ps1
 
-3. Output
+3. Find the output (still not committed to git)
    - Installer: dist\windows\installer\ReelwrightSetup.exe
-   - If Inno Setup is missing, the app bundle is still at
+   - If Inno Setup is missing, the app bundle is at
      dist\windows\bundle\
+   - Distribute that .exe to end users by release download / shared
+     drive — do not commit it to the repository.
 
 
 ----------------------------------------------------------------

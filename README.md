@@ -8,9 +8,7 @@ Phases **0–4** implemented in-repo (CLI + local FastAPI/web UI). Desktop Tauri
 
 ## Install
 
-**Windows (end users):** install `ReelwrightSetup.exe` (see [docs/packaging-windows.md](docs/packaging-windows.md)). The app opens in your browser at `http://127.0.0.1:8765/`.
-
-**Developers:**
+**From this repo (recommended until an installer is published):**
 
 ```bash
 pip install -e ".[dev]"
@@ -18,6 +16,8 @@ pip install -e ".[dev]"
 python3 -m reelwright.api.server
 # open http://127.0.0.1:8765/
 ```
+
+**Windows installer:** `ReelwrightSetup.exe` is **not** in git. It is produced on a Windows machine by `packaging/windows/build.ps1` (output: `dist/windows/installer/`). See [Install Instructions.txt](Install%20Instructions.txt) and [docs/packaging-windows.md](docs/packaging-windows.md).
 
 First launch walks through FFmpeg check, optional model consent, and projects folder.
 
