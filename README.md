@@ -4,7 +4,7 @@ Transcript-driven compositor and captioning tool for short-form and teaching vid
 
 ## Status
 
-**V3.0.3** — CapCut-style dual-track editing zone (A-roll EDL + B-roll assembly), Explorer-style media picker with Places/path bar, creator toolkit (undo, fillers, VO, music, transitions, titles, rank/reframe), Tauri 2 desktop shell, and uninstall process cleanup. Product renamed from Reelwright to **Reelwrite**.
+**V3.0.4** — Viewport-locked CapCut-style timeline (Select/Blade, trim, merge) and dual-track editing zone (A-roll EDL + B-roll assembly), Explorer-style media picker with Places/path bar, creator toolkit (undo, fillers, VO, music, transitions, titles, rank/reframe), Tauri 2 desktop shell, and uninstall process cleanup. Product renamed from Reelwright to **Reelwrite**.
 
 ## Install
 
