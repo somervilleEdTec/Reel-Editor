@@ -16,10 +16,10 @@
     },
     "projects": {
       "title": "Projects folder",
-      "change": "Change…",
+      "change": "Change\u2026",
       "hint": "New reels are saved here."
     },
-    "start": "Start creating →"
+    "start": "Start creating \u2192"
   },
   "home": {
     "tagline": "Transcript-driven reels for teaching and short-form.",
@@ -32,6 +32,13 @@
     "panelMedia": "Transcript",
     "panelPreview": "Preview",
     "panelProps": "Properties",
+    "mediaTab": "Media",
+    "transcriptTab": "Transcript",
+    "addMedia": "Add media\u2026",
+    "removeMedia": "Remove",
+    "emptyMedia": "No media yet. Add a video or audio file to get started.",
+    "removeConfirm": "Remove",
+    "removeUsedWarn": "This source is used in the assembly.",
     "play": "Play",
     "pause": "Pause",
     "transcript": "Transcript",
@@ -50,7 +57,7 @@
     "safezones": "Safe zones",
     "export": "Export",
     "saved": "Saved",
-    "ffmpegBanner": "FFmpeg not found — exporting is disabled",
+    "ffmpegBanner": "FFmpeg not found \u2014 exporting is disabled",
     "fixSetup": "Fix this"
   },
   "export": {
@@ -62,9 +69,9 @@
     "landscape": "Landscape 16:9",
     "destination": "Destination",
     "projectFolder": "Project folder",
-    "chooseFolder": "Choose folder…",
+    "chooseFolder": "Choose folder\u2026",
     "run": "Export",
-    "exporting": "Exporting…",
+    "exporting": "Exporting\u2026",
     "cancel": "Cancel",
     "cancelled": "Export cancelled",
     "done": "Export complete",
@@ -87,6 +94,13 @@
     "loadError": "Couldn't open this folder.",
     "useFolder": "Use this folder",
     "hintFile": "Double-click a file, or select it and press Enter. Esc cancels.",
-    "hintFolder": "Open the folder you want, then choose “Use this folder”."
+    "hintFolder": "Open the folder you want, then choose \u201cUse this folder\u201d.",
+    "largeIcons": "Large Icons",
+    "details": "Details",
+    "viewToggle": "View mode",
+    "reveal": "Reveal in Explorer",
+    "revealUnsupported": "Reveal not supported on this platform",
+    "selectedCount": "files selected",
+    "multiHint": "Ctrl/Cmd-click to multi-select; Shift-click for range"
   }
 }
