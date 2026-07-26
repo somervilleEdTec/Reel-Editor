@@ -120,15 +120,38 @@
   to { opacity: 1; transform: scale(1); }
 }
 .stage { position: absolute; inset: 0; }
+.stage-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #000;
+  z-index: 0;
+}
 .inset {
   position: absolute;
   left: 6%;
   top: 52%;
   width: 50%;
   aspect-ratio: 9 / 16;
-  background: #3d5a4a;
+  background: rgb(61 90 74 / 0.35);
   border: 2px solid #9fd0b0;
   cursor: grab;
+  touch-action: none;
+  z-index: 2;
+  box-sizing: border-box;
+}
+.inset-handle {
+  position: absolute;
+  right: -6px;
+  top: 20%;
+  bottom: 20%;
+  width: 12px;
+  border-radius: 4px;
+  background: #9fd0b0;
+  cursor: ew-resize;
+  touch-action: none;
 }
 .caption {
   position: absolute;
@@ -138,11 +161,15 @@
   text-align: center;
   font-weight: 700;
   cursor: ns-resize;
+  touch-action: none;
+  z-index: 3;
+  box-sizing: border-box;
 }
 .safe {
   pointer-events: none;
   position: absolute;
   inset: 0;
+  z-index: 4;
 }
 .inspector .cluster { margin-bottom: 1.25rem; }
 .inspector .field { display: flex; flex-direction: column; gap: 0.35rem; margin: 0.5rem 0; }

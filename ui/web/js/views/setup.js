@@ -97,6 +97,7 @@ function projectsBody(status, c, refresh) {
       title: c.projects.title,
       startDir: status.projects_dir,
       filter: () => false,
+      allowDirs: true,
       onPick: async (path) => {
         try {
           await post("/setup/projects-dir", { path });

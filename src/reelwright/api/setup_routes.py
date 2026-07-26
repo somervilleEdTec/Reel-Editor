@@ -13,7 +13,7 @@ from pydantic import BaseModel
 from reelwright.api import app as app_module
 from reelwright.ffmpeg_check import ffmpeg_status
 from reelwright.jobs.queue import QUEUE
-from reelwright.paths import app_data_dir, default_projects_dir, vendor_dir
+from reelwright.paths import app_data_dir, default_projects_dir, normalize_user_path, vendor_dir
 from reelwright.setup_state import load_setup, projects_dir_from_state, save_setup
 from reelwright.workflows import init_project, transcribe_project
 
@@ -138,11 +138,20 @@ def list_projects():
 
 @router.post("/projects/create")
 def create_project(body: CreateProjectBody):
-    video = Path(body.video_path).expanduser().resolve()
+    try:
+        video = normalize_user_path(body.video_path).resolve()
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
+    if video.is_dir():
+        raise HTTPException(400, "Path is a folder — choose a video file")
     if not video.is_file():
-        raise HTTPException(404, "Video file not found")
+        raise HTTPException(404, f"Video file not found: {video}")
     if video.suffix.lower() not in VIDEO_EXTS:
-        raise HTTPException(400, "Unsupported video type")
+        raise HTTPException(
+            400,
+            f"Unsupported video type {video.suffix!r}. Use: "
+            + ", ".join(sorted(VIDEO_EXTS)),
+        )
     root = projects_dir_from_state()
     name = body.name or video.stem
     dest = root / name

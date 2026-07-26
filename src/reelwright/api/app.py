@@ -29,9 +29,11 @@ app.add_middleware(
 
 from reelwright.api.jobs_routes import router as jobs_router
 from reelwright.api.setup_routes import router as setup_router
+from reelwright.api.media_routes import router as media_router
 
 app.include_router(jobs_router)
 app.include_router(setup_router)
+app.include_router(media_router)
 
 _STATE: dict = {"path": "project.json", "project": None}
 

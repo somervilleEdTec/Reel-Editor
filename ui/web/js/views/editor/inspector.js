@@ -1,6 +1,7 @@
 import { post } from "../../api.js";
 import { state, setState } from "../../store.js";
 import { toast } from "../../components/toast.js";
+import { paintCaption } from "./caption_preview.js";
 
 export function mountInspector(el, { copy, flashSaved }) {
   const p = state.project;
@@ -35,6 +36,7 @@ export function mountInspector(el, { copy, flashSaved }) {
         state.project.layers.background = btn.dataset.bg;
         setState({ project: state.project });
         flashSaved();
+        refreshStage();
         mountInspector(el, { copy, flashSaved });
       } catch (e) {
         toast(String(e.message || e), "danger");
@@ -56,6 +58,7 @@ export function mountInspector(el, { copy, flashSaved }) {
         state.project.captions.preset = name;
         setState({ project: state.project });
         flashSaved();
+        refreshStage();
         mountInspector(el, { copy, flashSaved });
       } catch (e) {
         toast(String(e.message || e), "danger");
@@ -64,17 +67,31 @@ export function mountInspector(el, { copy, flashSaved }) {
     sw.appendChild(b);
   }
 
-  el.querySelector(".cap-y").onchange = async (e) => {
+  el.querySelector(".cap-y").oninput = (e) => {
     const y = Number(e.target.value);
-    await saveCaptions({ y }, flashSaved);
-    document.querySelector(".caption")?.style && (document.querySelector(".caption").style.top = `${y * 100}%`);
+    state.project.captions.y = y;
+    refreshStage();
+  };
+  el.querySelector(".cap-y").onchange = async (e) => {
+    await saveCaptions({ y: Number(e.target.value) }, flashSaved);
   };
   el.querySelector(".cap-up").onchange = async (e) => {
     await saveCaptions({ uppercase: e.target.checked }, flashSaved);
+    refreshStage();
   };
   el.querySelector(".cap-mw").onchange = async (e) => {
     await saveCaptions({ max_words_visible: Number(e.target.value) }, flashSaved);
+    refreshStage();
   };
+}
+
+function refreshStage() {
+  const wrap = document.querySelector(".stage-wrap");
+  if (wrap?._refreshStage) wrap._refreshStage();
+  else {
+    const cap = document.querySelector(".caption");
+    if (cap) paintCaption(cap, state.project, state.presets || {});
+  }
 }
 
 async function saveCaptions(patch, flashSaved) {

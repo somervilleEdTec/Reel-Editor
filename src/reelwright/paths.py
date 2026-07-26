@@ -101,3 +101,21 @@ def ensure_stdio() -> Path | None:
     if sys.stderr is None:
         sys.stderr = stream  # type: ignore[assignment]
     return log_path
+
+
+def normalize_user_path(raw: str) -> Path:
+    """Normalize Explorer "Copy as path", file:// URLs, and stray whitespace."""
+    from urllib.parse import unquote, urlparse
+
+    s = (raw or "").strip().lstrip("\ufeff").strip()
+    if len(s) >= 2 and s[0] == s[-1] and s[0] in "\"'":
+        s = s[1:-1].strip()
+    if s.lower().startswith("file:"):
+        parsed = urlparse(s)
+        s = unquote(parsed.path or "")
+        # file:///C:/Users/... → /C:/Users/... on urlparse; drop leading slash.
+        if sys.platform == "win32" and len(s) >= 3 and s[0] == "/" and s[2] == ":":
+            s = s[1:]
+    if not s:
+        raise ValueError("Empty path")
+    return Path(s).expanduser()

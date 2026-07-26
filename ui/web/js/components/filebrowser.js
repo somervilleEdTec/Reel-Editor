@@ -1,6 +1,14 @@
 import { get } from "../api.js";
 
-export function openFileBrowser({ title, filter, startDir, pasteHint, onPick, onCancel }) {
+export function openFileBrowser({
+  title,
+  filter,
+  startDir,
+  pasteHint,
+  onPick,
+  onCancel,
+  allowDirs = false,
+}) {
   const backdrop = document.createElement("div");
   backdrop.className = "modal-backdrop";
   const modal = document.createElement("div");
@@ -13,7 +21,7 @@ export function openFileBrowser({ title, filter, startDir, pasteHint, onPick, on
     </label>
     <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:.75rem;flex-wrap:wrap">
       <button type="button" class="secondary cancel">Cancel</button>
-      <button type="button" class="secondary use-dir">Use this folder</button>
+      ${allowDirs ? `<button type="button" class="secondary use-dir">Use this folder</button>` : ""}
       <button type="button" class="open">Open</button>
     </div>`;
   backdrop.appendChild(modal);
@@ -47,9 +55,7 @@ export function openFileBrowser({ title, filter, startDir, pasteHint, onPick, on
       b.textContent = (e.type === "dir" ? "📁 " : "") + e.name;
       b.onclick = () => {
         if (e.type === "dir") load(e.path);
-        else {
-          paste.value = e.path;
-        }
+        else paste.value = e.path;
       };
       li.appendChild(b);
       list.appendChild(li);
@@ -60,18 +66,40 @@ export function openFileBrowser({ title, filter, startDir, pasteHint, onPick, on
     backdrop.remove();
     onCancel?.();
   };
-  modal.querySelector(".use-dir").onclick = () => {
+  modal.querySelector(".use-dir")?.addEventListener("click", () => {
     if (!current) return;
     backdrop.remove();
     onPick(current);
-  };
+  });
   modal.querySelector(".open").onclick = () => {
-    const path = paste.value.trim();
+    const path = normalizePastedPath(paste.value);
     if (!path) return;
+    paste.value = path;
     backdrop.remove();
     onPick(path);
   };
   load(startDir).catch((err) => {
     nav.textContent = String(err.message || err);
   });
+}
+
+/** Strip Explorer "Copy as path" quotes, BOM, and file:// wrappers. */
+export function normalizePastedPath(raw) {
+  let s = String(raw || "").trim().replace(/^\uFEFF/, "").trim();
+  if (
+    (s.startsWith('"') && s.endsWith('"')) ||
+    (s.startsWith("'") && s.endsWith("'"))
+  ) {
+    s = s.slice(1, -1).trim();
+  }
+  if (/^file:/i.test(s)) {
+    try {
+      const u = new URL(s);
+      s = decodeURIComponent(u.pathname || "");
+      if (/^\/[A-Za-z]:\//.test(s)) s = s.slice(1);
+    } catch {
+      /* keep s */
+    }
+  }
+  return s;
 }

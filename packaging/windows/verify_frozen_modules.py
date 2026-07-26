@@ -10,6 +10,7 @@ REQUIRED = (
     "reelwright.api.app",
     "reelwright.api.jobs_routes",
     "reelwright.api.setup_routes",
+    "reelwright.api.media_routes",
 )
 
 

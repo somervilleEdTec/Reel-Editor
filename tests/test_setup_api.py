@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from fastapi.testclient import TestClient
 
 from reelwright.api.app import app
@@ -68,3 +70,43 @@ def test_project_open_for_editor(tmp_path, monkeypatch):
     c = TestClient(app)
     assert c.post("/project/open", json={"path": str(path)}).status_code == 200
     assert c.get("/project").status_code == 200
+
+
+def test_create_project_accepts_copy_as_path_quotes(tmp_path, monkeypatch):
+    monkeypatch.setenv("REELWRIGHT_DATA", str(tmp_path / "data"))
+    projects = tmp_path / "projects"
+    projects.mkdir()
+    video = tmp_path / "talk.mp4"
+    video.write_bytes(b"x")
+    c = TestClient(app)
+    assert c.post("/setup/projects-dir", json={"path": str(projects)}).status_code == 200
+    # Windows Explorer "Copy as path" wraps in double quotes.
+    res = c.post("/projects/create", json={"video_path": f'"{video}"'})
+    assert res.status_code == 200, res.text
+    body = res.json()
+    assert str(projects) in body["path"]
+    # Job may fail ffprobe on dummy bytes; path must be unquoted in the error/result.
+    import time
+
+    job = None
+    for _ in range(40):
+        job = c.get(f"/jobs/{body['job_id']}").json()
+        if job["status"] in ("done", "error", "cancelled"):
+            break
+        time.sleep(0.05)
+    assert job is not None
+    blob = str(job.get("error") or job.get("result") or "")
+    assert f'"{video}"' not in blob
+    assert str(video) in blob or job["status"] == "done"
+
+
+
+def test_create_project_rejects_directory(tmp_path, monkeypatch):
+    monkeypatch.setenv("REELWRIGHT_DATA", str(tmp_path / "data"))
+    projects = tmp_path / "projects"
+    projects.mkdir()
+    c = TestClient(app)
+    c.post("/setup/projects-dir", json={"path": str(projects)})
+    res = c.post("/projects/create", json={"video_path": str(tmp_path)})
+    assert res.status_code == 400
+    assert "folder" in res.json()["detail"].lower()
