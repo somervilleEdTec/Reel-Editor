@@ -153,14 +153,22 @@ def _build_export_filter(
     include_assembly: bool,
 ) -> str:
     w, h = project.export.width, project.export.height
+    # Crossfade shortens output vs concat Timeline used for captions/B-roll/titles.
+    # Keep cut when overlays need stable output times.
+    transition = project.export.transition
+    transition_s = project.export.transition_s
+    if transition == "crossfade" and (
+        include_assembly or bool(getattr(project, "titles", None))
+    ):
+        transition, transition_s = "cut", 0.0
     parts, video_label, audio_label, _ = build_edl_av_filters(
         edl,
         source_inputs,
         sources,
         w,
         h,
-        project.export.transition,
-        project.export.transition_s,
+        transition,
+        transition_s,
     )
     if include_assembly and project.assembly and project.assembly.clips:
         asm_parts, video_label, audio_label = build_assembly_filters(

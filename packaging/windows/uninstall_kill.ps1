@@ -16,6 +16,20 @@ function Stop-Tree([int]$ProcessId) {
   }
 }
 
+function Test-OwnedPid([int]$ProcessId, [string]$Root) {
+  $proc = Get-CimInstance Win32_Process -Filter "ProcessId=$ProcessId"
+  if (-not $proc) { return $false }
+  $name = [IO.Path]::GetFileNameWithoutExtension($proc.Name)
+  if ($name -notin @("Reelwright", "reelwright-api")) { return $false }
+  if (-not $proc.ExecutablePath) { return $true }
+  $exe = $proc.ExecutablePath
+  $prefix = $Root.TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
+  return $exe.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)
+}
+
+$root = $null
+try { $root = (Resolve-Path $InstallDir).Path } catch { $root = $InstallDir }
+
 $pidFile = Join-Path $env:LOCALAPPDATA "Reelwright\reelwright.pid"
 $apiPidFile = Join-Path $env:LOCALAPPDATA "Reelwright\api.pid"
 foreach ($file in @($pidFile, $apiPidFile)) {
@@ -23,23 +37,25 @@ foreach ($file in @($pidFile, $apiPidFile)) {
     $raw = Get-Content $file -Raw
     $recorded = 0
     if ($raw -and [int]::TryParse($raw.Trim(), [ref]$recorded)) {
-      Stop-Tree $recorded
+      if ($root -and (Test-OwnedPid $recorded $root)) {
+        Stop-Tree $recorded
+      }
     }
     Remove-Item $file -Force
   }
 }
 
-foreach ($name in @("Reelwright", "reelwright-api")) {
-  foreach ($proc in (Get-Process -Name $name)) {
-    Stop-Tree $proc.Id
-  }
-}
-
-# Only vendored/spawned media tools from this install, never a system-wide ffmpeg.
-$root = (Resolve-Path $InstallDir).Path
 if ($root) {
+  $prefix = $root.TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
+  foreach ($name in @("Reelwright", "reelwright-api")) {
+    foreach ($proc in (Get-Process -Name $name)) {
+      if ($proc.Path -and $proc.Path.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)) {
+        Stop-Tree $proc.Id
+      }
+    }
+  }
   foreach ($proc in (Get-Process -Name "ffmpeg", "ffprobe")) {
-    if ($proc.Path -and $proc.Path.StartsWith($root, [StringComparison]::OrdinalIgnoreCase)) {
+    if ($proc.Path -and $proc.Path.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)) {
       Stop-Tree $proc.Id
     }
   }

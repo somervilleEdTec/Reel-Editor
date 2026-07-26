@@ -11,6 +11,7 @@ from pydantic import BaseModel
 
 from reelwright.api.setup_routes import _is_allowed
 from reelwright.paths import app_data_dir
+from reelwright.security.paths import _BLOCKED
 
 router = APIRouter(prefix="/fs")
 
@@ -24,6 +25,9 @@ def _allowed_file(raw: str) -> Path:
         path = Path(raw).expanduser().resolve()
     except (OSError, ValueError) as exc:
         raise HTTPException(400, "Invalid path") from exc
+    text = str(path)
+    if any(pat.search(text) for pat in _BLOCKED):
+        raise HTTPException(403, "Blocked system path")
     if not _is_allowed(path):
         raise HTTPException(403, "Path outside allowed roots")
     if not path.exists():

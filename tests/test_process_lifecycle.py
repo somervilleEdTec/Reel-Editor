@@ -46,11 +46,13 @@ def test_kill_targets_app_and_install_scoped_ffmpeg(tmp_path: Path, monkeypatch)
     install = tmp_path / "app"
     (install / "vendor").mkdir(parents=True)
     procs = [
+        _proc(99, "reelwright-api.exe", str(install / "reelwright-api.exe")),
         _proc(101, "Reelwright.exe", str(install / "Reelwright.exe")),
         _proc(102, "reelwright-api.exe", str(install / "reelwright-api.exe")),
         _proc(103, "ffmpeg.exe", str(install / "vendor" / "ffmpeg" / "ffmpeg.exe")),
         _proc(104, "ffmpeg.exe", "C:/Tools/ffmpeg.exe", "ffmpeg -i movie.mp4"),
         _proc(105, "explorer.exe", "C:/Windows/explorer.exe"),
+        _proc(200, "notepad.exe", "C:/Windows/notepad.exe"),
     ]
     killed_pids = []
     monkeypatch.setattr(lifecycle, "list_processes", lambda: procs)
@@ -59,11 +61,13 @@ def test_kill_targets_app_and_install_scoped_ffmpeg(tmp_path: Path, monkeypatch)
     )
 
     write_pid_file(99, "api")
+    write_pid_file(200, "reelwright")  # foreign pid must be ignored
     killed = lifecycle.kill_reelwright_processes(str(install))
 
     assert killed == [99, 101, 102, 103]
     assert killed_pids == killed
     assert read_pid_file("api") is None
+    assert 200 not in killed
 
 
 def test_kill_is_a_noop_when_nothing_matches(tmp_path: Path, monkeypatch):

@@ -64,6 +64,8 @@ def list_snapshots():
 
 @router.post("/restore")
 def restore_snapshot(body: SnapshotBody):
+    from reelwright.api.undo import reset_history
+
     name = _name(body.name)
     path = _path(name)
     if not path.is_file():
@@ -74,5 +76,6 @@ def restore_snapshot(body: SnapshotBody):
         )
     except (OSError, ValueError, KeyError) as exc:
         raise HTTPException(400, "Invalid snapshot") from exc
+    reset_history(app_module._STATE)
     app_module._save(project)
     return project.model_dump()

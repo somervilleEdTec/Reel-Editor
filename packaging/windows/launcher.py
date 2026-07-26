@@ -65,14 +65,15 @@ def _spawn(cmd: list[str], root: Path) -> subprocess.Popen:
     return subprocess.Popen(cmd, cwd=str(root), **kwargs)
 
 
-def _shutdown(proc: subprocess.Popen | None, lifecycle) -> None:
+def _shutdown(proc: subprocess.Popen | None, lifecycle, *, owns_api: bool) -> None:
     if proc is not None:
         if lifecycle is not None:
             lifecycle.terminate_process_tree(proc.pid)
         if proc.poll() is None:
             proc.terminate()
+        if lifecycle is not None and owns_api:
+            lifecycle.clear_pid_file(lifecycle.API_NAME)
     if lifecycle is not None:
-        lifecycle.clear_pid_file(lifecycle.API_NAME)
         lifecycle.clear_pid_file()
 
 
@@ -91,10 +92,12 @@ def main() -> int:
     if lifecycle is not None:
         lifecycle.write_pid_file(os.getpid())
     proc = None
+    owns_api = False
     if not _healthy():
         api = root / "reelwright-api.exe"
         cmd = [str(api)] if api.exists() else [sys.executable, "-m", "reelwright.api.server"]
         proc = _spawn(cmd, root)
+        owns_api = True
         if lifecycle is not None:
             lifecycle.write_pid_file(proc.pid, lifecycle.API_NAME)
         for _ in range(60):
@@ -103,7 +106,7 @@ def main() -> int:
             time.sleep(0.25)
         else:
             print("Reelwright API failed to start", file=sys.stderr)
-            _shutdown(proc, lifecycle)
+            _shutdown(proc, lifecycle, owns_api=owns_api)
             return 1
 
     webbrowser.open(URL)
@@ -112,7 +115,7 @@ def main() -> int:
     except KeyboardInterrupt:
         return 0
     finally:
-        _shutdown(proc, lifecycle)
+        _shutdown(proc, lifecycle, owns_api=owns_api)
 
 
 if __name__ == "__main__":

@@ -33,10 +33,14 @@ MEDIA_NAMES = ("ffmpeg.exe", "ffprobe.exe", "ffmpeg", "ffprobe")
 
 def _owned_by_install(proc: ProcessInfo, install_dir: str) -> bool:
     """True only for media tools shipped in / launched from this install."""
-    needle = install_dir.lower().replace("\\", "/")
-    exe = proc.exe.lower().replace("\\", "/")
-    if exe.startswith(needle):
-        return True
+    root = Path(install_dir).resolve()
+    if proc.exe:
+        try:
+            Path(proc.exe).resolve().relative_to(root)
+            return True
+        except (ValueError, OSError):
+            pass
+    needle = str(root).lower().replace("\\", "/").rstrip("/") + "/"
     return needle in proc.cmdline.lower().replace("\\", "/")
 
 
@@ -52,13 +56,31 @@ def _targets(install_dir: str) -> list[int]:
     return pids
 
 
+def _pid_is_reelwright(pid: int, install_dir: str | None = None) -> bool:
+    """Refuse to kill PIDs that are not Reelwright / this install's API."""
+    for proc in list_processes():
+        if proc.pid != pid:
+            continue
+        name = proc.name.lower()
+        if name in APP_NAMES:
+            if not install_dir or not proc.exe:
+                return True
+            try:
+                Path(proc.exe).resolve().relative_to(Path(install_dir).resolve())
+                return True
+            except (ValueError, OSError):
+                return False
+        return False
+    return False
+
+
 def kill_reelwright_processes(install_dir: str | None = None) -> list[int]:
     """Stop the recorded API pid, Reelwright executables, and this install's ffmpeg."""
     root = str(Path(install_dir).resolve()) if install_dir else str(install_root())
     killed = []
     for name in (API_NAME, "reelwright"):
         pid = read_pid_file(name)
-        if pid and terminate_process_tree(pid):
+        if pid and _pid_is_reelwright(pid, root) and terminate_process_tree(pid):
             killed.append(pid)
         clear_pid_file(name)
     for pid in _targets(root):

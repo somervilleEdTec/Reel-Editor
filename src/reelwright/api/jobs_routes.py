@@ -79,15 +79,19 @@ def enqueue_transcribe(body: TranscribeJobBody):
 def enqueue_reframe(body: ReframeJobBody):
     from reelwright.cv.project_reframe import project_reframe
 
-    project = app_module._proj().model_copy(deep=True)
+    mode = body.mode
 
     def work(job):
         job.progress = 0.1
         if job.cancel.is_set():
             return None
-        updated = project_reframe(project, body.mode)
-        app_module._save(updated)
-        return {"mode": body.mode, "keyframes": len(updated.reframe["crop_path"])}
+        # Reload live project so concurrent edits are not overwritten.
+        current = app_module._proj().model_copy(deep=True)
+        updated = project_reframe(current, mode)
+        live = app_module._proj()
+        live.reframe = updated.reframe
+        app_module._save(live)
+        return {"mode": mode, "keyframes": len(updated.reframe["crop_path"])}
 
     try:
         job = QUEUE.submit("reframe", work)
