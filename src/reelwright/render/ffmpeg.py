@@ -126,6 +126,13 @@ def _build_filter(edl, project: Project, ass_path: str) -> str:
 
 
 def _escape_filter_path(path: str) -> str:
-    """Escape a filesystem path for use inside an ffmpeg filtergraph."""
+    """Escape a filesystem path for use inside an ffmpeg filtergraph.
+
+    Windows absolute paths contain a drive colon (``C:/...``). Unquoted, ffmpeg
+    treats ``:`` as an option separator, so ``subtitles=C:/Temp/captions.ass``
+    becomes filename=``C`` and original_size=``/Temp/captions.ass``. Wrap in
+    single quotes and escape ``\\``, ``'``, and ``:`` inside the quotes.
+    """
     p = path.replace("\\", "/")
-    return "".join(f"\\{ch}" if ch in "\\:'[],;" else ch for ch in p)
+    inner = "".join(f"\\{ch}" if ch in "\\:'" else ch for ch in p)
+    return f"'{inner}'"
