@@ -86,11 +86,23 @@ def render_ass(project: Project, timeline: Timeline, out_path: str) -> str:
         text = ev["text"]
         if project.captions.uppercase or preset.get("uppercase"):
             text = text.upper()
+        text = _escape_ass(text)
         lines.append(
             f"Dialogue: 0,{_ts(ev['start'])},{_ts(ev['end'])},Default,,0,0,0,,{text}"
         )
     Path(out_path).write_text("\n".join(lines) + "\n", encoding="utf-8")
     return out_path
+
+
+def _escape_ass(text: str) -> str:
+    """Neutralise ASS override codes and breaks in caption text."""
+    return (
+        text.replace("\\", "\\\\")
+        .replace("{", "\\{")
+        .replace("}", "\\}")
+        .replace("\n", "\\N")
+        .replace("\r", "")
+    )
 
 
 def _ts(seconds: float) -> str:

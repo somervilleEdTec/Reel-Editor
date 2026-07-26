@@ -25,17 +25,21 @@ def enqueue_export(body: ExportJobBody):
     project = app_module._proj()
     # Capture path at enqueue time so job uses saved project file
     project_path = app_module._STATE["path"]
+    out = app_module._safe_path(body.out, for_write=True)
 
     def work(job):
         job.progress = 0.1
         if job.cancel.is_set():
             return None
         p = Project.load(project_path) if project_path else project
-        path = export_master(p, body.out, aspect=body.aspect)
+        path = export_master(p, out, aspect=body.aspect)
         job.progress = 1.0
         return {"out": path}
 
-    job = QUEUE.submit("export", work)
+    try:
+        job = QUEUE.submit("export", work)
+    except RuntimeError as e:
+        raise HTTPException(429, str(e)) from e
     return {"job_id": job.id}
 
 
@@ -55,7 +59,10 @@ def enqueue_transcribe(body: TranscribeJobBody):
         job.progress = 1.0
         return {"words": len(updated.words)}
 
-    job = QUEUE.submit("transcribe", work)
+    try:
+        job = QUEUE.submit("transcribe", work)
+    except RuntimeError as e:
+        raise HTTPException(429, str(e)) from e
     return {"job_id": job.id}
 
 

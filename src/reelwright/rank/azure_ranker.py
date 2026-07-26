@@ -5,6 +5,7 @@ import os
 from urllib import request
 
 from reelwright.models.word import Word
+from reelwright.security.egress import assert_azure_openai_endpoint
 
 
 CRITERIA = [
@@ -26,6 +27,12 @@ class AzureOpenAIRanker:
                 "AZURE_OPENAI_API_KEY, AZURE_OPENAI_DEPLOYMENT. "
                 "This sends transcript text off-device — opt-in only."
             )
+        try:
+            endpoint = assert_azure_openai_endpoint(endpoint)
+        except ValueError as e:
+            raise RuntimeError(str(e)) from e
+        if "/" in deployment or "\\" in deployment or ".." in deployment:
+            raise RuntimeError("Invalid AZURE_OPENAI_DEPLOYMENT name")
         text = " ".join(
             w.text for w in words if start_id <= w.id <= end_id and not w.deleted
         )
@@ -36,7 +43,7 @@ class AzureOpenAIRanker:
             + f"\n\nTEXT:\n{text}"
         )
         url = (
-            f"{endpoint.rstrip('/')}/openai/deployments/{deployment}/chat/completions"
+            f"{endpoint}/openai/deployments/{deployment}/chat/completions"
             f"?api-version=2024-02-15-preview"
         )
         body = json.dumps(

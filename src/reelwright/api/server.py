@@ -9,6 +9,7 @@ from reelwright.paths import ensure_vendor_ffmpeg_on_path
 
 def main():
     ensure_vendor_ffmpeg_on_path()
+    # Loopback only — never bind 0.0.0.0; API has no auth by design.
     uvicorn.run("reelwright.api.app:app", host="127.0.0.1", port=8765, reload=False)
 
 
