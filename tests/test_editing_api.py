@@ -54,6 +54,18 @@ def test_edl_endpoint(tmp_path):
     assert result.status_code == 200
     assert len(result.json()["segments"]) == 1
     assert result.json()["output_duration_s"] > 0
+    seg = result.json()["segments"][0]
+    assert "output_start" in seg and "source_start" in seg
+    assert result.json()["total_duration"] == result.json()["output_duration_s"]
+
+
+def test_markers_get_and_post(tmp_path):
+    client = _open(tmp_path, [])
+    assert client.get("/markers").json()["markers"] == []
+    created = client.post("/markers", json={"t_out_s": 1.5, "label": "beat"})
+    assert created.status_code == 200
+    assert created.json()["markers"][0]["t_out_s"] == 1.5
+    assert client.get("/markers").json()["markers"][0]["label"] == "beat"
 
 
 def test_export_settings_transition(tmp_path):

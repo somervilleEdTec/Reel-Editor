@@ -4,7 +4,7 @@ import { toast } from "../../../components/toast.js";
 import { mountRuler, updateRuler } from "./ruler.js";
 import { mountPlayhead, updatePlayhead, setPlayheadZoom } from "./playhead.js";
 import { mountEdlTrack, refreshEdlTrack } from "./edl-track.js";
-import { mountBrollTrack, refreshBrollTrack } from "./broll-track.js";
+import { mountBrollTrack, refreshBrollTrack, deleteSelectedClip } from "./broll-track.js";
 import { mountMarkers, refreshMarkers } from "./markers.js";
 import { wireToolbar } from "./toolbar.js";
 import { outToSrc, edlDuration, deletedGaps } from "./edl-utils.js";
@@ -44,7 +44,11 @@ export async function mountTimeline(el, { copy, flashSaved, getVideo, onSeekOutp
   const blade = async () => {
     const srcTime = state.playheadSrc ?? 0;
     try {
-      await post("/words/range", { start: srcTime, end: srcTime, deleted: true });
+      await post("/words/range", {
+        start_s: Math.max(0, srcTime - 0.04),
+        end_s: srcTime + 0.04,
+        deleted: true,
+      });
       const fresh = await get("/edl");
       setState({ edl: fresh });
       toast(copy.bladed, "ok");
@@ -58,7 +62,11 @@ export async function mountTimeline(el, { copy, flashSaved, getVideo, onSeekOutp
     const g = gaps.find((gap) => srcTime >= gap.source_start && srcTime <= gap.source_end);
     if (!g) return;
     try {
-      await post("/words/range", { start: g.source_start, end: g.source_end, deleted: false });
+      await post("/words/range", {
+        start_s: g.source_start,
+        end_s: g.source_end,
+        deleted: false,
+      });
       const fresh = await get("/edl");
       setState({ edl: fresh });
       toast(copy.restored, "ok");
@@ -83,6 +91,7 @@ export async function mountTimeline(el, { copy, flashSaved, getVideo, onSeekOutp
   el._blade = blade;
   el._undo = handleUndo;
   el._redo = handleRedo;
+  el._deleteSelected = () => deleteSelectedClip(brollEl, flashSaved);
 
   function repaint() {
     canvas.style.minWidth = `${duration * zoom}px`;

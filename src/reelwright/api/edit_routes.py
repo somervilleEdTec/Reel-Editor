@@ -38,9 +38,23 @@ def get_edl():
         source = next((s for s in project.sources if s.id in active_sources), None)
         duration = source.duration_s if source else None
     segments = derive_edl(project.words, source_duration_s=duration)
+    timeline = Timeline(segments)
+    spans = []
+    for seg, o0, o1 in timeline._spans:
+        row = asdict(seg)
+        row.update(
+            {
+                "source_start": seg.in_s,
+                "source_end": seg.out_s,
+                "output_start": o0,
+                "output_end": o1,
+            }
+        )
+        spans.append(row)
     return {
-        "segments": [asdict(segment) for segment in segments],
-        "output_duration_s": Timeline(segments).duration_s,
+        "segments": spans,
+        "output_duration_s": timeline.duration_s,
+        "total_duration": timeline.duration_s,
     }
 
 

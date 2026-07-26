@@ -17,6 +17,11 @@ class MarkerChange(BaseModel):
     markers: list[Marker] | None = None
 
 
+@router.get("/markers")
+def list_markers():
+    return {"markers": [marker.model_dump() for marker in app_module._proj().markers]}
+
+
 @router.post("/markers")
 def update_markers(body: list[Marker] | MarkerChange):
     project = app_module._proj()

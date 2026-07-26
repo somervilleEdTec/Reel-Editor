@@ -126,7 +126,7 @@ export async function renderEditor(root, st) {
     showHelp: () => {
       import("../../components/toast.js").then(({ toast: t }) => t(ct.shortcutsHint, "ok"));
     },
-    deleteSelected: () => timelineEl.querySelector("[data-a=delete]")?.click(),
+    deleteSelected: () => timelineEl._deleteSelected?.(),
   });
 
   // Unregister shortcuts when navigating away

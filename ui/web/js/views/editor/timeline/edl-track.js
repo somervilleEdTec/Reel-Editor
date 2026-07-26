@@ -73,8 +73,12 @@ function wireTrimHandles(block, seg, _idx, trackEl, edl) {
       if (!h._pending) return;
       const p = h._pending; h._pending = null;
       try {
-        const updated = await post("/words/range", p);
-        const fresh = updated?.segments ? updated : await get("/edl");
+        await post("/words/range", {
+          start_s: p.start,
+          end_s: p.end,
+          deleted: p.deleted,
+        });
+        const fresh = await get("/edl");
         setState({ edl: fresh }); refreshEdlTrack(trackEl, { edl: fresh });
         trackEl._flashSaved();
       } catch (err) { toast(String(err.message || err), "danger"); }
@@ -84,8 +88,12 @@ function wireTrimHandles(block, seg, _idx, trackEl, edl) {
 
 async function restoreGap(gap, flashSaved) {
   try {
-    const updated = await post("/words/range", { start: gap.source_start, end: gap.source_end, deleted: false });
-    const fresh = updated?.segments ? updated : await get("/edl");
+    await post("/words/range", {
+      start_s: gap.source_start,
+      end_s: gap.source_end,
+      deleted: false,
+    });
+    const fresh = await get("/edl");
     setState({ edl: fresh });
     flashSaved();
   } catch (err) { toast(String(err.message || err), "danger"); }

@@ -14,8 +14,9 @@ export function wireToolbar(el, ctx) {
 
   el.querySelector("[data-a=distribute]").onclick = async () => {
     try {
-      const updated = await post("/assembly/distribute", {});
-      if (updated) setState({ project: updated });
+      const assembly = await post("/assembly/distribute", {});
+      const project = await get("/project");
+      setState({ project: { ...project, assembly } });
       toast(copy.distributeOk || "Clips distributed", "ok");
       flashSaved();
     } catch (err) { toast(String(err.message || err), "danger"); }
