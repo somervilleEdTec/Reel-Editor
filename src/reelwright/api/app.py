@@ -18,6 +18,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from reelwright.api.jobs_routes import router as jobs_router
+
+app.include_router(jobs_router)
+
 _STATE: dict = {"path": "project.json", "project": None}
 
 
