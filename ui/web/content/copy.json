@@ -94,6 +94,28 @@
     "ffmpegBanner": "FFmpeg not found \u2014 exporting is disabled",
     "fixSetup": "Fix this"
   },
+  "timeline": {
+    "aroll": "A-Roll",
+    "broll": "B-Roll",
+    "markers": "Markers",
+    "blade": "Blade",
+    "restore": "Restore",
+    "import": "Import",
+    "distribute": "Distribute",
+    "cleanup": "Clean",
+    "undo": "Undo",
+    "redo": "Redo",
+    "zoomIn": "+",
+    "zoomOut": "−",
+    "addMarker": "Marker",
+    "bladed": "Segment cut",
+    "restored": "Segment restored",
+    "markerAdded": "Marker added",
+    "deleteClip": "Clip deleted",
+    "cleanDone": "Fillers removed",
+    "shortcuts": "Shortcuts",
+    "shortcutsHint": "Space play/pause · B blade · Del delete · ⌘Z undo · ⌘⇧Z redo · +/− zoom · ? help"
+  },
   "export": {
     "title": "Export reel",
     "filename": "Filename",

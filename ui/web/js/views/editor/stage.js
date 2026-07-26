@@ -1,7 +1,8 @@
 import { post } from "../../api.js";
-import { state, setState } from "../../store.js";
+import { state, setState, subscribe } from "../../store.js";
 import { toast } from "../../components/toast.js";
 import { paintCaption } from "./caption_preview.js";
+import { srcToOut, nextKeptSeg } from "./timeline/edl-utils.js";
 
 export function mountStage(el, { copy, flashSaved }) {
   const project = state.project;
@@ -35,11 +36,13 @@ export function mountStage(el, { copy, flashSaved }) {
   const caption = el.querySelector(".caption");
   const safe = el.querySelector(".safe");
   const video = el.querySelector(".stage-video");
+  el._video = video;
 
   video.addEventListener("error", () => {
     toast("Could not load video preview — check the source file path", "danger");
   });
   wireTransport(el, video, copy);
+  wirePlayheadSync(el, video);
 
   function applyLayout() {
     const p = state.project;
@@ -73,18 +76,48 @@ function wireTransport(el, video, copy) {
     btn.setAttribute("aria-label", video.paused ? copy.play : copy.pause);
   };
   btn.onclick = () => {
-    if (video.paused) video.play().catch(() => {}); // error listener already toasts
+    if (video.paused) video.play().catch(() => {});
     else video.pause();
   };
   video.addEventListener("play", paintState);
   video.addEventListener("pause", paintState);
+
+  let jumping = false;
   video.addEventListener("timeupdate", () => {
     if (video.duration) scrub.value = String((video.currentTime / video.duration) * 1000);
     time.textContent = `${fmt(video.currentTime)} / ${fmt(video.duration || 0)}`;
+
+    // Skip-deleted playback: jump over deleted source regions
+    const segs = state.edl?.segments;
+    if (segs?.length && !video.paused && !jumping) {
+      const inKeep = segs.some((s) => video.currentTime >= s.source_start && video.currentTime <= s.source_end + 0.01);
+      if (!inKeep) {
+        const next = nextKeptSeg(video.currentTime, segs);
+        jumping = true;
+        if (next) video.currentTime = next.source_start;
+        else video.pause();
+        setTimeout(() => { jumping = false; }, 80);
+      }
+    }
+
+    // Broadcast output time to store for timeline playhead
+    const outTime = segs?.length ? (srcToOut(video.currentTime, segs) ?? state.playheadOut) : video.currentTime;
+    setState({ playheadSrc: video.currentTime, playheadOut: outTime ?? 0 });
   });
+
   scrub.oninput = () => {
     if (video.duration) video.currentTime = (Number(scrub.value) / 1000) * video.duration;
   };
+}
+
+function wirePlayheadSync(el, video) {
+  if (el._phUnsub) el._phUnsub();
+  el._phUnsub = subscribe((st) => {
+    // Sync video when timeline seeks externally (threshold avoids feedback loop)
+    if (st.playheadSrc != null && Math.abs(st.playheadSrc - video.currentTime) > 0.15) {
+      video.currentTime = st.playheadSrc;
+    }
+  });
 }
 
 function wireSafezones(el, safe, zones) {

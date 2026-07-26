@@ -1,4 +1,4 @@
-import { get } from "../../api.js";
+import { get, post } from "../../api.js";
 import { setState, state } from "../../store.js";
 import { toast } from "../../components/toast.js";
 import { mountTranscript } from "./transcript.js";
@@ -7,6 +7,9 @@ import { mountInspector } from "./inspector.js";
 import { mountMediaBin } from "./media_bin.js";
 import { openExport } from "./export.js";
 import { navigate } from "../../router.js";
+import { mountTimeline } from "./timeline/index.js";
+import { outToSrc } from "./timeline/edl-utils.js";
+import { registerEditorShortcuts, unregisterEditorShortcuts } from "../../shortcuts.js";
 
 export async function renderEditor(root, st) {
   let project = st.project;
@@ -25,6 +28,7 @@ export async function renderEditor(root, st) {
   if (!st.safezones) setState({ safezones: await get("/safezones") });
 
   const c = st.copy.editor;
+  const ct = st.copy.timeline;
   const name = (st.projectPath || "project.json").split(/[/\\]/).slice(-2, -1)[0] || "Reel";
 
   root.innerHTML = `<div class="editor-shell">
@@ -33,6 +37,8 @@ export async function renderEditor(root, st) {
       <span class="proj-name">${name}</span>
       <span class="saved">${c.saved} ✓</span>
       <span class="spacer"></span>
+      <button type="button" class="secondary undo-btn" title="Undo (⌘Z)">${ct.undo}</button>
+      <button type="button" class="secondary redo-btn" title="Redo (⌘⇧Z)">${ct.redo}</button>
       <button type="button" class="accent export-btn" ${setup.ffmpeg?.found ? "" : "disabled"}>${c.export}</button>
     </header>
     <div class="banner-slot"></div>
@@ -85,4 +91,44 @@ export async function renderEditor(root, st) {
   mountStage(root.querySelector(".stage-wrap"), { copy: c, flashSaved });
   mountInspector(root.querySelector(".inspector"), { copy: c, flashSaved });
   root.querySelector(".export-btn").onclick = () => openExport({ copy: st.copy.export, flashSaved });
+
+  const getVideo = () => root.querySelector(".stage-wrap")._video ?? root.querySelector(".stage-video");
+
+  const onSeekOutput = (outTime) => {
+    const segs = state.edl?.segments;
+    const srcTime = segs?.length ? (outToSrc(outTime, segs) ?? outTime) : outTime;
+    const v = getVideo();
+    if (v) v.currentTime = srcTime;
+    setState({ playheadOut: outTime, playheadSrc: srcTime });
+  };
+
+  const timelineEl = root.querySelector(".timeline-zone");
+  mountTimeline(timelineEl, { copy: ct, flashSaved, getVideo, onSeekOutput });
+
+  // Topbar undo/redo
+  const undoAct = async () => {
+    try { await post("/project/undo", {}); const p = await get("/project"); setState({ project: p }); const e = await get("/edl").catch(() => null); if (e) setState({ edl: e }); flashSaved(); } catch (err) { toast(String(err.message || err), "danger"); }
+  };
+  const redoAct = async () => {
+    try { await post("/project/redo", {}); const p = await get("/project"); setState({ project: p }); const e = await get("/edl").catch(() => null); if (e) setState({ edl: e }); flashSaved(); } catch (err) { toast(String(err.message || err), "danger"); }
+  };
+  root.querySelector(".undo-btn").onclick = undoAct;
+  root.querySelector(".redo-btn").onclick = redoAct;
+
+  // Keyboard shortcuts
+  registerEditorShortcuts({
+    getVideo,
+    blade: () => timelineEl._blade?.(),
+    undo: undoAct,
+    redo: redoAct,
+    zoomIn: () => timelineEl.querySelector("[data-a=zoom-in]")?.click(),
+    zoomOut: () => timelineEl.querySelector("[data-a=zoom-out]")?.click(),
+    showHelp: () => {
+      import("../../components/toast.js").then(({ toast: t }) => t(ct.shortcutsHint, "ok"));
+    },
+    deleteSelected: () => timelineEl.querySelector("[data-a=delete]")?.click(),
+  });
+
+  // Unregister shortcuts when navigating away
+  window.addEventListener("hashchange", unregisterEditorShortcuts, { once: true });
 }
