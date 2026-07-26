@@ -1,15 +1,15 @@
-Install Instructions — Reelwright
+Install Instructions — Reelwrite
 =================================
 
-Reelwright is a transcript-driven reel compositor and captioning tool.
+Reelwrite is a transcript-driven reel compositor and captioning tool.
 It runs locally on your computer. The editor opens in your browser at
 http://127.0.0.1:8765/ and does not require an internet connection for
 normal use.
 
 
-IMPORTANT — where is ReelwrightSetup.exe?
+IMPORTANT — where is ReelwriteSetup.exe?
 -----------------------------------------
-ReelwrightSetup.exe is NOT committed into the Git source tree.
+ReelwriteSetup.exe is NOT committed into the Git source tree.
 
 It is published as a GitHub Release asset instead:
 
@@ -46,8 +46,8 @@ installer Release has been published yet.
    pip install -e ".[dev]"
 
 4. Start the local server
-   python -m reelwright.api.server
-   (or: python3 -m reelwright.api.server)
+   python -m reelwrite.api.server
+   (or: python3 -m reelwrite.api.server)
 
 5. Open the UI
    - Browser: http://127.0.0.1:8765/
@@ -55,9 +55,9 @@ installer Release has been published yet.
      projects folder), then use Home → Editor → Export.
 
 6. Optional CLI (no UI)
-   reelwright init video.mp4 -o project.json
-   reelwright transcribe project.json
-   reelwright export project.json -o master.mp4
+   reelwrite init video.mp4 -o project.json
+   reelwrite transcribe project.json
+   reelwrite export project.json -o master.mp4
 
 
 ----------------------------------------------------------------
@@ -66,12 +66,12 @@ B. Windows installer from GitHub Releases (end users)
 
 1. Open the Releases page
      https://github.com/somervilleEdTec/Reel-Editor/releases
-2. Open the latest release and download ReelwrightSetup.exe
-3. Double-click ReelwrightSetup.exe and follow the wizard
-   - Install location (default): %LOCALAPPDATA%\Reelwright
+2. Open the latest release and download ReelwriteSetup.exe
+3. Double-click ReelwriteSetup.exe and follow the wizard
+   - Install location (default): %LOCALAPPDATA%\Reelwrite
    - No administrator rights are required
    - Optional: create a desktop icon
-4. Start Menu → Reelwright
+4. Start Menu → Reelwrite
    - Launcher starts http://127.0.0.1:8765/ and opens your browser
 5. Complete first-run setup, then create or open a reel
 
@@ -92,13 +92,13 @@ Preferred: GitHub Actions (creates the Release + attaches the .exe)
 3. Wait for the Windows job to finish
 4. Confirm the Release under:
      https://github.com/somervilleEdTec/Reel-Editor/releases
-   Asset: ReelwrightSetup.exe
+   Asset: ReelwriteSetup.exe
 
 Local Windows build (optional):
 
 1. Python 3.11+, Inno Setup 6, then:
      powershell -ExecutionPolicy Bypass -File packaging/windows/build.ps1 -Version 0.1.0 -FetchFfmpeg
-2. Output: dist\windows\installer\ReelwrightSetup.exe
+2. Output: dist\windows\installer\ReelwriteSetup.exe
    (still do not commit; upload via the Actions release workflow)
 
 
@@ -106,7 +106,7 @@ Local Windows build (optional):
 D. Optional cloud features (opt-in)
 ----------------------------------------------------------------
 
-Reelwright works offline by default. Cloud features only run if you
+Reelwrite works offline by default. Cloud features only run if you
 set environment variables for your own Azure subscription:
 
   AZURE_SPEECH_KEY
@@ -123,7 +123,7 @@ E. Security notes for local installs
 ----------------------------------------------------------------
 
 - The API listens on 127.0.0.1 only (this computer), not the network.
-- For a stricter workspace lockdown, set REELWRIGHT_ROOT to your
+- For a stricter workspace lockdown, set REELWRITE_ROOT to your
   projects folder before starting the server.
 - Related packaging detail: docs/packaging-windows.md
 - Licence notes: LICENCE_NOTES.md
@@ -134,8 +134,8 @@ F. Uninstall (Windows installer)
 ----------------------------------------------------------------
 
 1. Open Windows Settings → Apps → Installed apps.
-2. Find Reelwright → Uninstall.
-3. Your projects folder under %LOCALAPPDATA%\Reelwright\projects
+2. Find Reelwrite → Uninstall.
+3. Your projects folder under %LOCALAPPDATA%\Reelwrite\projects
    may remain; delete it manually if you no longer need those files.
 
 

@@ -1,9 +1,9 @@
 from fastapi.testclient import TestClient
 
-from reelwright.api.app import app
-from reelwright.models.project import Project
-from reelwright.models.source import Source
-from reelwright.models.word import Word
+from reelwrite.api.app import app
+from reelwrite.models.project import Project
+from reelwrite.models.source import Source
+from reelwrite.models.word import Word
 
 
 def test_health():
@@ -26,7 +26,7 @@ def test_delete_word(tmp_path):
 
 
 def test_safezone_hits():
-    from reelwright.api.safezone import safezone_hits
+    from reelwrite.api.safezone import safezone_hits
 
     p = Project()
     p.captions.y = 0.95

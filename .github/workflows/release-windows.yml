@@ -1,4 +1,4 @@
-# Build ReelwrightSetup.exe on Windows and publish a GitHub Release.
+# Build ReelwriteSetup.exe on Windows and publish a GitHub Release.
 #
 # Triggers:
 #   - Push a version tag: git tag v0.1.0 && git push origin v0.1.0
@@ -72,18 +72,18 @@ jobs:
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ReelwrightSetup-${{ steps.ver.outputs.version }}
-          path: dist/windows/installer/ReelwrightSetup.exe
+          name: ReelwriteSetup-${{ steps.ver.outputs.version }}
+          path: dist/windows/installer/ReelwriteSetup.exe
           if-no-files-found: error
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.ver.outputs.tag }}
-          name: Reelwright ${{ steps.ver.outputs.version }}
+          name: Reelwrite ${{ steps.ver.outputs.version }}
           draft: ${{ github.event_name == 'workflow_dispatch' && inputs.draft == true }}
           generate_release_notes: true
-          files: dist/windows/installer/ReelwrightSetup.exe
+          files: dist/windows/installer/ReelwriteSetup.exe
           fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

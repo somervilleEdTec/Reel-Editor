@@ -5,7 +5,7 @@
 #   powershell -ExecutionPolicy Bypass -File packaging/windows/build.ps1 -FetchFfmpeg
 #   powershell -ExecutionPolicy Bypass -File packaging/windows/build.ps1 -SkipTauri
 #
-# Shipped Reelwright.exe is the Tauri shell (src-tauri). When Rust is unavailable, or
+# Shipped Reelwrite.exe is the Tauri shell (src-tauri). When Rust is unavailable, or
 # with -SkipTauri, the bundle falls back to the legacy PyInstaller browser launcher.
 
 param(
@@ -33,16 +33,16 @@ if ($FetchFfmpeg) {
 Push-Location $Root
 try {
   python -m pip install -e ".[dev]" pyinstaller
-  pyinstaller --noconfirm --clean packaging/windows/reelwright-api.spec
+  pyinstaller --noconfirm --clean packaging/windows/reelwrite-api.spec
   python packaging/windows/verify_frozen_modules.py
   pyinstaller --noconfirm --clean packaging/windows/launcher.spec
 
-  Copy-Item -Recurse "dist\reelwright-api\*" $Bundle
+  Copy-Item -Recurse "dist\reelwrite-api\*" $Bundle
 
-  # Tauri shell: WebView2 window that starts reelwright-api.exe and loads 127.0.0.1:8765.
+  # Tauri shell: WebView2 window that starts reelwrite-api.exe and loads 127.0.0.1:8765.
   # Needs the Rust MSVC toolchain (see src-tauri/README.md); optional so Python-only
   # machines can still produce a bundle.
-  $TauriExe = Join-Path $Root "src-tauri\target\release\Reelwright.exe"
+  $TauriExe = Join-Path $Root "src-tauri\target\release\Reelwrite.exe"
   if (-not $SkipTauri) {
     if (Get-Command cargo -ErrorAction SilentlyContinue) {
       Push-Location (Join-Path $Root "src-tauri")
@@ -65,13 +65,13 @@ try {
   }
 
   if ((-not $SkipTauri) -and (Test-Path $TauriExe)) {
-    Copy-Item $TauriExe (Join-Path $Bundle "Reelwright.exe")
+    Copy-Item $TauriExe (Join-Path $Bundle "Reelwrite.exe")
     # Keep the browser launcher alongside for headless/WebView2-less fallback.
-    Copy-Item "dist\Reelwright.exe" (Join-Path $Bundle "Reelwright-browser.exe")
+    Copy-Item "dist\Reelwrite.exe" (Join-Path $Bundle "Reelwrite-browser.exe")
   }
   else {
     if ($RequireTauri) { throw "Tauri shell missing: $TauriExe" }
-    Copy-Item "dist\Reelwright.exe" (Join-Path $Bundle "Reelwright.exe")
+    Copy-Item "dist\Reelwrite.exe" (Join-Path $Bundle "Reelwrite.exe")
   }
 
   Copy-Item "packaging\windows\uninstall_kill.ps1" (Join-Path $Bundle "uninstall_kill.ps1")
@@ -94,8 +94,8 @@ try {
   ) | Where-Object { Test-Path $_ } | Select-Object -First 1
 
   if ($iscc) {
-    & $iscc "/DMyAppVersion=$Version" "packaging\windows\Reelwright.iss"
-    $setup = Join-Path $Dist "installer\ReelwrightSetup.exe"
+    & $iscc "/DMyAppVersion=$Version" "packaging\windows\Reelwrite.iss"
+    $setup = Join-Path $Dist "installer\ReelwriteSetup.exe"
     if (-not (Test-Path $setup)) {
       throw "Installer missing after ISCC: $setup"
     }

@@ -1,7 +1,7 @@
-from reelwright.edit.apply_candidate import apply_candidate
-from reelwright.models.word import Word
-from reelwright.rank.caveats import caveat_warnings
-from reelwright.rank.windows import enumerate_windows
+from reelwrite.edit.apply_candidate import apply_candidate
+from reelwrite.models.word import Word
+from reelwrite.rank.caveats import caveat_warnings
+from reelwrite.rank.windows import enumerate_windows
 
 
 def _mk(n=40):
@@ -19,9 +19,9 @@ def test_apply_candidate():
 
 def test_claim_caveat_fixture(tmp_path):
     from pathlib import Path
-    from reelwright.asr.align import import_vtt
-    from reelwright.rank.caveats import caveat_warnings
-    from reelwright.rank.windows import enumerate_windows
+    from reelwrite.asr.align import import_vtt
+    from reelwrite.rank.caveats import caveat_warnings
+    from reelwrite.rank.windows import enumerate_windows
 
     src = Path("tests/fixtures/claim_caveat.vtt")
     words = import_vtt(str(src), "s")

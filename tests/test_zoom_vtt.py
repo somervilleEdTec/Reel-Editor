@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from reelwright.asr.align import import_vtt
-from reelwright.ingest.zoom_vtt import parse_webvtt
+from reelwrite.asr.align import import_vtt
+from reelwrite.ingest.zoom_vtt import parse_webvtt
 
 
 def test_parse_webvtt(tmp_path: Path):

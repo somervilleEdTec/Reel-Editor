@@ -1,15 +1,15 @@
 [package]
-name = "reelwright-shell"
+name = "reelwrite-shell"
 version = "2.0.0"
-description = "Tauri desktop shell for Reelwright"
+description = "Tauri desktop shell for Reelwrite"
 edition = "2021"
 rust-version = "1.88"
 publish = false
 
-# Binary name drives the packaged filename: src-tauri/target/release/Reelwright.exe,
-# which is what Reelwright.iss installs as the Start Menu entry point.
+# Binary name drives the packaged filename: src-tauri/target/release/Reelwrite.exe,
+# which is what Reelwrite.iss installs as the Start Menu entry point.
 [[bin]]
-name = "Reelwright"
+name = "Reelwrite"
 path = "src/main.rs"
 
 [build-dependencies]

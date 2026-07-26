@@ -1,9 +1,9 @@
 from fastapi.testclient import TestClient
 
-from reelwright.api.app import app
-from reelwright.models.project import Project
-from reelwright.models.source import Source
-from reelwright.models.word import Word
+from reelwrite.api.app import app
+from reelwrite.models.project import Project
+from reelwrite.models.source import Source
+from reelwrite.models.word import Word
 
 
 def _open(tmp_path, words):
@@ -87,7 +87,7 @@ def test_assembly_import_and_reorder(tmp_path, monkeypatch):
     def fake_probe(path, source_id, role):
         return Source(id=source_id, path=path, role=role, duration_s=2)
 
-    monkeypatch.setattr("reelwright.api.source_ops.probe", fake_probe)
+    monkeypatch.setattr("reelwrite.api.source_ops.probe", fake_probe)
     client = _open(
         tmp_path,
         [Word(id=i, text="word", start_s=i, end_s=i + 0.5, source_id="narr")
@@ -111,7 +111,7 @@ def test_sources_accept_single_path_and_id(tmp_path, monkeypatch):
     def fake_probe(path, source_id, role):
         return Source(id=source_id, path=path, role=role, duration_s=2)
 
-    monkeypatch.setattr("reelwright.api.source_ops.probe", fake_probe)
+    monkeypatch.setattr("reelwrite.api.source_ops.probe", fake_probe)
     client = _open(tmp_path, [])
     added = client.post("/sources/add", json={"path": str(media)})
     assert added.status_code == 200
@@ -121,6 +121,6 @@ def test_sources_accept_single_path_and_id(tmp_path, monkeypatch):
 
 
 def test_thumb_rejects_outside_allowlist(monkeypatch, tmp_path):
-    monkeypatch.setenv("REELWRIGHT_DATA", str(tmp_path / "data"))
+    monkeypatch.setenv("REELWRITE_DATA", str(tmp_path / "data"))
     response = TestClient(app).get("/fs/thumb", params={"path": "/etc/passwd"})
     assert response.status_code == 403

@@ -2,7 +2,7 @@
 // (suppressed) console, see api_process::hide_console_window.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-//! Reelwright desktop shell.
+//! Reelwrite desktop shell.
 //!
 //! Boots the local FastAPI server, waits for `/health`, then points the WebView at
 //! `http://127.0.0.1:8765/` so the UI in `ui/web/` runs same-origin against the API.
@@ -34,7 +34,7 @@ fn main() {
             Ok(())
         })
         .build(tauri::generate_context!())
-        .expect("failed to build the Reelwright shell")
+        .expect("failed to build the Reelwrite shell")
         .run(|app, event| match event {
             RunEvent::ExitRequested { .. } | RunEvent::Exit => {
                 api_process::shutdown(app);
@@ -49,11 +49,11 @@ fn main() {
 fn boot(app: &AppHandle) {
     if !health::is_healthy(API_ADDR, HEALTH_PATH) {
         if let Err(err) = api_process::start(app) {
-            report(app, &format!("Could not start the Reelwright API: {err}"));
+            report(app, &format!("Could not start the Reelwrite API: {err}"));
             return;
         }
         if !health::wait_until_healthy(API_ADDR, HEALTH_PATH, STARTUP_TIMEOUT) {
-            report(app, "The Reelwright API did not respond on 127.0.0.1:8765.");
+            report(app, "The Reelwrite API did not respond on 127.0.0.1:8765.");
             return;
         }
     }
@@ -61,16 +61,16 @@ fn boot(app: &AppHandle) {
     let Ok(url) = API_URL.parse() else { return };
     if let Some(window) = app.get_webview_window("main") {
         if let Err(err) = window.navigate(url) {
-            report(app, &format!("Could not open the Reelwright UI: {err}"));
+            report(app, &format!("Could not open the Reelwrite UI: {err}"));
         }
     }
 }
 
 /// Surface a startup failure on the splash page (and to stderr for logs).
 fn report(app: &AppHandle, message: &str) {
-    eprintln!("[reelwright] {message}");
+    eprintln!("[reelwrite] {message}");
     if let Some(window) = app.get_webview_window("main") {
-        let script = format!("window.reelwrightError?.({})", json_string(message));
+        let script = format!("window.reelwriteError?.({})", json_string(message));
         let _ = window.eval(&script);
     }
 }

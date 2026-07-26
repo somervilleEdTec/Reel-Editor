@@ -1,9 +1,9 @@
-//! PID files, matching `reelwright.pid_file` so `uninstall_kill.ps1` can stop us:
-//! `%LOCALAPPDATA%\Reelwright\{reelwright,api}.pid` (or `$REELWRIGHT_DATA`).
+//! PID files, matching `reelwrite.pid_file` so `uninstall_kill.ps1` can stop us:
+//! `%LOCALAPPDATA%\Reelwrite\{reelwrite,api}.pid` (or `$REELWRITE_DATA`).
 
 use std::path::PathBuf;
 
-pub const SHELL: &str = "reelwright";
+pub const SHELL: &str = "reelwrite";
 pub const API: &str = "api";
 
 pub fn write(name: &str, pid: u32) {
@@ -22,9 +22,9 @@ fn pid_path(name: &str) -> PathBuf {
     data_dir().join(format!("{name}.pid"))
 }
 
-/// Mirrors `reelwright.paths.app_data_dir()`.
+/// Mirrors `reelwrite.paths.app_data_dir()`.
 fn data_dir() -> PathBuf {
-    match std::env::var_os("REELWRIGHT_DATA") {
+    match std::env::var_os("REELWRITE_DATA") {
         Some(dir) => PathBuf::from(dir),
         None => default_data_dir(),
     }
@@ -35,14 +35,14 @@ fn default_data_dir() -> PathBuf {
     std::env::var_os("LOCALAPPDATA")
         .map(PathBuf::from)
         .unwrap_or_else(|| home().join("AppData").join("Local"))
-        .join("Reelwright")
+        .join("Reelwrite")
 }
 
 #[cfg(not(windows))]
 fn default_data_dir() -> PathBuf {
     match std::env::var_os("XDG_DATA_HOME") {
-        Some(xdg) => PathBuf::from(xdg).join("reelwright"),
-        None => home().join(".local").join("share").join("reelwright"),
+        Some(xdg) => PathBuf::from(xdg).join("reelwrite"),
+        None => home().join(".local").join("share").join("reelwrite"),
     }
 }
 

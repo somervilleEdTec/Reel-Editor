@@ -13,5 +13,5 @@ pytest tests/test_api.py -q
 - Warn; never auto-reposition.
 
 ## Tauri missing
-- Run API: `python3 -m reelwright.api.server`
+- Run API: `python3 -m reelwrite.api.server`
 - Open `http://127.0.0.1:8765/` for web UI.

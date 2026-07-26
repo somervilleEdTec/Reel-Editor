@@ -1,4 +1,4 @@
-// Mirrors src/reelwright/media_formats.py — keep both in sync.
+// Mirrors src/reelwrite/media_formats.py — keep both in sync.
 export const VIDEO_EXTS = [
   "mp4", "mov", "mkv", "webm", "m4v", "avi",
   "mts", "m2ts", "wmv", "flv", "3gp", "ts",

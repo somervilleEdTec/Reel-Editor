@@ -1,17 +1,17 @@
 import subprocess
 from pathlib import Path
 
-from reelwright.edit.edl import Segment
-from reelwright.edit.timeline import Timeline
-from reelwright.models.assembly import Assembly, AssemblyClip
-from reelwright.models.editing import Title
-from reelwright.models.project import Project
-from reelwright.models.source import Source
-from reelwright.models.word import Word
-from reelwright.render.assembly_filters import build_assembly_filters
-from reelwright.render.edl_filters import build_edl_av_filters
-from reelwright.render.ffmpeg import export_master
-from reelwright.render.title_filters import build_title_filters
+from reelwrite.edit.edl import Segment
+from reelwrite.edit.timeline import Timeline
+from reelwrite.models.assembly import Assembly, AssemblyClip
+from reelwrite.models.editing import Title
+from reelwrite.models.project import Project
+from reelwrite.models.source import Source
+from reelwrite.models.word import Word
+from reelwrite.render.assembly_filters import build_assembly_filters
+from reelwrite.render.edl_filters import build_edl_av_filters
+from reelwrite.render.ffmpeg import export_master
+from reelwrite.render.title_filters import build_title_filters
 
 
 def test_edl_filters_concat_audio_and_video():
@@ -222,5 +222,5 @@ def _mock_export_subprocess(monkeypatch, calls: list[list[str]]) -> None:
         calls.append(cmd)
         return subprocess.CompletedProcess(cmd, 0, "", "")
 
-    monkeypatch.setattr("reelwright.render.ffmpeg.render_ass", fake_render_ass)
-    monkeypatch.setattr("reelwright.render.ffmpeg.subprocess.run", fake_run)
+    monkeypatch.setattr("reelwrite.render.ffmpeg.render_ass", fake_render_ass)
+    monkeypatch.setattr("reelwrite.render.ffmpeg.subprocess.run", fake_run)

@@ -3,11 +3,11 @@ from pathlib import Path
 
 from uvicorn.config import Config
 
-from reelwright.paths import ensure_stdio
+from reelwrite.paths import ensure_stdio
 
 
 def test_ensure_stdio_restores_none_streams(tmp_path: Path, monkeypatch):
-    monkeypatch.setenv("REELWRIGHT_DATA", str(tmp_path))
+    monkeypatch.setenv("REELWRITE_DATA", str(tmp_path))
     monkeypatch.setattr(sys, "stdout", None)
     monkeypatch.setattr(sys, "stderr", None)
     log_path = ensure_stdio()
@@ -19,9 +19,9 @@ def test_ensure_stdio_restores_none_streams(tmp_path: Path, monkeypatch):
 
 
 def test_uvicorn_config_survives_restored_stdio(tmp_path: Path, monkeypatch):
-    monkeypatch.setenv("REELWRIGHT_DATA", str(tmp_path))
+    monkeypatch.setenv("REELWRITE_DATA", str(tmp_path))
     monkeypatch.setattr(sys, "stdout", None)
     monkeypatch.setattr(sys, "stderr", None)
     ensure_stdio()
     # Same crash path as packaged api_entry: Config.configure_logging()
-    Config("reelwright.api.app:app", host="127.0.0.1", port=8767, use_colors=False)
+    Config("reelwrite.api.app:app", host="127.0.0.1", port=8767, use_colors=False)

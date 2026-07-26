@@ -1,8 +1,8 @@
 """Fallback launcher: start API if needed, open browser, keep alive.
 
-The Tauri shell (`src-tauri/`) is the primary Reelwright.exe. This ships as
-Reelwright-browser.exe for machines without WebView2 and for `python -m` runs, and
-takes over as Reelwright.exe when the bundle is built with `build.ps1 -SkipTauri`.
+The Tauri shell (`src-tauri/`) is the primary Reelwrite.exe. This ships as
+Reelwrite-browser.exe for machines without WebView2 and for `python -m` runs, and
+takes over as Reelwrite.exe when the bundle is built with `build.ps1 -SkipTauri`.
 """
 
 from __future__ import annotations
@@ -38,13 +38,13 @@ def _healthy() -> bool:
 def _lifecycle():
     """Import the lifecycle helpers, tolerating an uninstalled source checkout."""
     try:
-        from reelwright import process_lifecycle
+        from reelwrite import process_lifecycle
     except ModuleNotFoundError:
         src = Path(__file__).resolve().parents[2] / "src"
         if src.is_dir():
             sys.path.insert(0, str(src))
         try:
-            from reelwright import process_lifecycle
+            from reelwrite import process_lifecycle
         except ModuleNotFoundError:
             return None
     return process_lifecycle
@@ -56,7 +56,7 @@ def _single_instance_mutex():
         return None
     import ctypes
 
-    return ctypes.windll.kernel32.CreateMutexW(None, False, "ReelwrightSingleInstance")
+    return ctypes.windll.kernel32.CreateMutexW(None, False, "ReelwriteSingleInstance")
 
 
 def _spawn(cmd: list[str], root: Path) -> subprocess.Popen:
@@ -82,10 +82,10 @@ def main() -> int:
     os.chdir(root)
     vendor = root / "vendor"
     if vendor.is_dir():
-        os.environ.setdefault("REELWRIGHT_VENDOR", str(vendor))
+        os.environ.setdefault("REELWRITE_VENDOR", str(vendor))
     ui = root / "ui" / "web"
     if ui.is_dir():
-        os.environ.setdefault("REELWRIGHT_UI", str(ui))
+        os.environ.setdefault("REELWRITE_UI", str(ui))
 
     mutex = _single_instance_mutex()  # noqa: F841 — kept alive for the process lifetime
     lifecycle = _lifecycle()
@@ -94,8 +94,8 @@ def main() -> int:
     proc = None
     owns_api = False
     if not _healthy():
-        api = root / "reelwright-api.exe"
-        cmd = [str(api)] if api.exists() else [sys.executable, "-m", "reelwright.api.server"]
+        api = root / "reelwrite-api.exe"
+        cmd = [str(api)] if api.exists() else [sys.executable, "-m", "reelwrite.api.server"]
         proc = _spawn(cmd, root)
         owns_api = True
         if lifecycle is not None:
@@ -105,7 +105,7 @@ def main() -> int:
                 break
             time.sleep(0.25)
         else:
-            print("Reelwright API failed to start", file=sys.stderr)
+            print("Reelwrite API failed to start", file=sys.stderr)
             _shutdown(proc, lifecycle, owns_api=owns_api)
             return 1
 

@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Reelwright</title>
+    <title>Reelwrite</title>
     <style>
       :root { color-scheme: dark; }
       body {
@@ -22,12 +22,12 @@
     </style>
   </head>
   <body>
-    <h1>Reelwright</h1>
+    <h1>Reelwrite</h1>
     <p id="status">Starting the local editing engine…</p>
     <script>
       // Called from the Rust shell when startup fails; the shell otherwise navigates
       // this window to http://127.0.0.1:8765/ as soon as /health answers.
-      window.reelwrightError = (message) => {
+      window.reelwriteError = (message) => {
         const status = document.getElementById("status");
         status.textContent = message;
         status.setAttribute("data-error", "");

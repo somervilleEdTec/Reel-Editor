@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "reelwright"
+name = "reelwrite"
 version = "2.0.0"
 description = "Transcript-driven reel compositor and captioning tool"
 readme = "README.md"
@@ -20,14 +20,14 @@ dependencies = [
 dev = ["pytest>=8.0"]
 
 [project.scripts]
-reelwright = "reelwright.cli:main"
-reelwright-api = "reelwright.api.server:main"
+reelwrite = "reelwrite.cli:main"
+reelwrite-api = "reelwrite.api.server:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-reelwright = ["config/*.json", "captions/*.json"]
+reelwrite = ["config/*.json", "captions/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

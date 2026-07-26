@@ -1,9 +1,9 @@
 """Golden sync: caption event starts within 80ms of mapped word times."""
 
-from reelwright.captions.ass import caption_events
-from reelwright.edit.edl import derive_edl
-from reelwright.edit.timeline import Timeline
-from reelwright.models.word import Word
+from reelwrite.captions.ass import caption_events
+from reelwrite.edit.edl import derive_edl
+from reelwrite.edit.timeline import Timeline
+from reelwrite.models.word import Word
 
 
 def test_golden_sync_within_80ms():

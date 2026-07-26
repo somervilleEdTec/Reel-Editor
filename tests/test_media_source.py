@@ -2,15 +2,15 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from reelwright.api.app import app
-from reelwright.models.project import Project
-from reelwright.models.source import Source
-from reelwright.models.word import Word
+from reelwrite.api.app import app
+from reelwrite.models.project import Project
+from reelwrite.models.source import Source
+from reelwrite.models.word import Word
 
 
 def test_media_source_serves_project_video(tmp_path, monkeypatch):
-    monkeypatch.setenv("REELWRIGHT_DATA", str(tmp_path / "data"))
-    monkeypatch.setenv("REELWRIGHT_ROOT", str(tmp_path))
+    monkeypatch.setenv("REELWRITE_DATA", str(tmp_path / "data"))
+    monkeypatch.setenv("REELWRITE_ROOT", str(tmp_path))
     video = tmp_path / "clip.mp4"
     video.write_bytes(b"\x00\x00\x00\x18ftypmp42")
     proj = tmp_path / "p.json"
@@ -27,7 +27,7 @@ def test_media_source_serves_project_video(tmp_path, monkeypatch):
 
 
 def test_media_source_selects_source_by_id(tmp_path, monkeypatch):
-    monkeypatch.setenv("REELWRIGHT_ROOT", str(tmp_path))
+    monkeypatch.setenv("REELWRITE_ROOT", str(tmp_path))
     first, second = tmp_path / "first.mp4", tmp_path / "second.mp4"
     first.write_bytes(b"first")
     second.write_bytes(b"second")

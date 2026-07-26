@@ -2314,7 +2314,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "reelwright-shell"
+name = "reelwrite-shell"
 version = "2.0.0"
 dependencies = [
  "tauri",

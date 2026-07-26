@@ -1,7 +1,7 @@
-//! Lifecycle of the local Reelwright API.
+//! Lifecycle of the local Reelwrite API.
 //!
-//! Packaged: `reelwright-api.exe` sits next to `Reelwright.exe` (see
-//! `packaging/windows/build.ps1`). Dev: `python -m reelwright.api.server` from the repo root.
+//! Packaged: `reelwrite-api.exe` sits next to `Reelwrite.exe` (see
+//! `packaging/windows/build.ps1`). Dev: `python -m reelwrite.api.server` from the repo root.
 
 use std::io;
 use std::path::{Path, PathBuf};
@@ -13,9 +13,9 @@ use tauri::{AppHandle, Manager};
 use crate::pid;
 
 #[cfg(windows)]
-const API_EXE: &str = "reelwright-api.exe";
+const API_EXE: &str = "reelwrite-api.exe";
 #[cfg(not(windows))]
-const API_EXE: &str = "reelwright-api";
+const API_EXE: &str = "reelwrite-api";
 
 #[cfg(windows)]
 const PYTHON: &str = "python";
@@ -61,15 +61,15 @@ fn spawn() -> io::Result<Child> {
         (bundle, Command::new(&packaged))
     } else {
         let mut dev = Command::new(PYTHON);
-        dev.args(["-m", "reelwright.api.server"]);
+        dev.args(["-m", "reelwrite.api.server"]);
         (repo_root(), dev)
     };
 
     // Mirror launcher.py: run from the bundle root and point the API at sibling assets.
     command.current_dir(&root);
     for (key, dir) in [
-        ("REELWRIGHT_UI", root.join("ui").join("web")),
-        ("REELWRIGHT_VENDOR", root.join("vendor")),
+        ("REELWRITE_UI", root.join("ui").join("web")),
+        ("REELWRITE_VENDOR", root.join("vendor")),
     ] {
         if dir.is_dir() {
             command.env(key, dir);

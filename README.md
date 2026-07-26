@@ -1,4 +1,4 @@
-# Reelwright
+# Reelwrite
 
 Transcript-driven compositor and captioning tool for short-form and teaching video (HVL).
 
@@ -8,14 +8,14 @@ Transcript-driven compositor and captioning tool for short-form and teaching vid
 
 ## Install
 
-**Windows end users:** download `ReelwrightSetup.exe` from [GitHub Releases](https://github.com/somervilleEdTec/Reel-Editor/releases) (built by Actions — not stored in git). See [Install Instructions.txt](Install%20Instructions.txt).
+**Windows end users:** download `ReelwriteSetup.exe` from [GitHub Releases](https://github.com/somervilleEdTec/Reel-Editor/releases) (built by Actions — not stored in git). See [Install Instructions.txt](Install%20Instructions.txt).
 
 **Developers / from source:**
 
 ```bash
 pip install -e ".[dev]"
 # requires ffmpeg/ffprobe on PATH
-python3 -m reelwright.api.server
+python3 -m reelwrite.api.server
 # open http://127.0.0.1:8765/
 ```
 
@@ -26,26 +26,26 @@ First launch walks through FFmpeg check, optional model consent, and projects fo
 ## Phase 0 — captioned master
 
 ```bash
-reelwright init video.mp4 -o project.json
-reelwright transcribe project.json
-reelwright export project.json -o master.mp4
+reelwrite init video.mp4 -o project.json
+reelwrite transcribe project.json
+reelwrite export project.json -o master.mp4
 # default 9:16; landscape: --aspect 16:9
-reelwright import-vtt project.json meeting.vtt   # optional Zoom text+align
+reelwrite import-vtt project.json meeting.vtt   # optional Zoom text+align
 ```
 
 ## Phase 1b — Mode C
 
 ```bash
-reelwright record-vo project.json -o voiceover.wav
-reelwright import-clips project.json clip1.mp4 clip2.mp4
-reelwright auto-distribute project.json
-reelwright export project.json -o master.mp4
+reelwrite record-vo project.json -o voiceover.wav
+reelwrite import-clips project.json clip1.mp4 clip2.mp4
+reelwrite auto-distribute project.json
+reelwrite export project.json -o master.mp4
 ```
 
 ## Phase 1 — editor UI
 
 ```bash
-python3 -m reelwright.api.server
+python3 -m reelwrite.api.server
 # open http://127.0.0.1:8765/
 ```
 
@@ -58,16 +58,16 @@ Product UI flows: first-run setup → home (new/recent reels) → editor → exp
 ## Phase 3 — computer vision
 
 ```bash
-reelwright reframe project.json --mode active_speaker
+reelwrite reframe project.json --mode active_speaker
 ```
 
 ## Phase 4 — research ranking
 
 ```bash
-reelwright rank project.json
-reelwright rank project.json --score   # Azure OpenAI opt-in (egress)
-reelwright select project.json c0
-reelwright export project.json -o clip.mp4
+reelwrite rank project.json
+reelwrite rank project.json --score   # Azure OpenAI opt-in (egress)
+reelwrite select project.json c0
+reelwrite export project.json -o clip.mp4
 ```
 
 ## Cloud opt-in (Azure EU)
