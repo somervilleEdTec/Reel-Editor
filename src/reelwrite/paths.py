@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -104,18 +105,51 @@ def ensure_stdio() -> Path | None:
 
 
 def normalize_user_path(raw: str) -> Path:
-    """Normalize Explorer "Copy as path", file:// URLs, and stray whitespace."""
+    """Normalize Explorer "Copy as path", file:// URLs, and stray whitespace.
+
+    Windows drive/UNC paths must stay absolute. On POSIX they are never joined to
+    cwd (which produced errors like ``/workspace/C:\\Users\\...``). Under WSL they
+    map to ``/mnt/<drive>/...`` when that mount exists.
+    """
     from urllib.parse import unquote, urlparse
 
     s = (raw or "").strip().lstrip("\ufeff").strip()
-    if len(s) >= 2 and s[0] == s[-1] and s[0] in "\"'":
+    # Straight + common “smart” quotes from paste boards.
+    if len(s) >= 2 and s[0] in "\"'“”‘’" and s[-1] in "\"'“”‘’":
         s = s[1:-1].strip()
     if s.lower().startswith("file:"):
         parsed = urlparse(s)
         s = unquote(parsed.path or "")
         # file:///C:/Users/... → /C:/Users/... on urlparse; drop leading slash.
-        if sys.platform == "win32" and len(s) >= 3 and s[0] == "/" and s[2] == ":":
+        if len(s) >= 3 and s[0] == "/" and s[2] == ":":
             s = s[1:]
     if not s:
         raise ValueError("Empty path")
+    if _is_windows_absolute(s):
+        return _windows_abs_path(s)
     return Path(s).expanduser()
+
+
+_WIN_DRIVE = re.compile(r"^[A-Za-z]:[\\/]")
+
+
+def _is_windows_absolute(s: str) -> bool:
+    return bool(_WIN_DRIVE.match(s) or s.startswith("\\\\") or s.startswith("//"))
+
+
+def _windows_abs_path(s: str) -> Path:
+    """Return a usable Path for a Windows absolute/UNC string."""
+    if sys.platform == "win32":
+        return Path(s)
+    # WSL / similar: C:\Users\x → /mnt/c/Users/x
+    m = _WIN_DRIVE.match(s)
+    if m:
+        drive = s[0].lower()
+        rest = s[2:].lstrip("\\/").replace("\\", "/")
+        mapped = Path("/mnt") / drive / rest
+        if mapped.exists() or (Path("/mnt") / drive).exists():
+            return mapped
+    raise ValueError(
+        f"Windows path cannot be used on this system: {s}. "
+        "Choose a file that exists on this machine (or run Reelwrite on Windows)."
+    )

@@ -36,9 +36,14 @@ def resolve_workspace_path(
     """Resolve *path* into an allowed root; reject system/escaped paths."""
     if not path or "\x00" in path:
         raise PathDenied("Invalid path")
+    from reelwrite.paths import normalize_user_path
+
+    try:
+        p = normalize_user_path(path)
+    except ValueError as e:
+        raise PathDenied(str(e)) from e
     roots = workspace_roots()
-    p = Path(path).expanduser()
-    resolved = (roots[0] / p).resolve() if not p.is_absolute() else p.resolve()
+    resolved = p.resolve(strict=False) if p.is_absolute() else (roots[0] / p).resolve()
     _assert_allowed(resolved, roots)
     if must_exist and not resolved.exists():
         raise FileNotFoundError(str(resolved))
