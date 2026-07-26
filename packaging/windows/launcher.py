@@ -1,4 +1,9 @@
-"""Windows launcher: start API if needed, open browser, keep alive."""
+"""Fallback launcher: start API if needed, open browser, keep alive.
+
+The Tauri shell (`src-tauri/`) is the primary Reelwright.exe. This ships as
+Reelwright-browser.exe for machines without WebView2 and for `python -m` runs, and
+takes over as Reelwright.exe when the bundle is built with `build.ps1 -SkipTauri`.
+"""
 
 from __future__ import annotations
 
