@@ -82,3 +82,22 @@ def ensure_vendor_ffmpeg_on_path() -> None:
     prefix = str(d)
     if prefix not in path.split(os.pathsep):
         os.environ["PATH"] = prefix + os.pathsep + path
+
+
+def ensure_stdio() -> Path | None:
+    """Restore stdout/stderr when a windowed freeze sets them to None.
+
+    PyInstaller ``console=False`` builds leave ``sys.stdout`` / ``sys.stderr``
+    as ``None``, which crashes uvicorn's colourised logging (``.isatty()``).
+    """
+    if sys.stdout is not None and sys.stderr is not None:
+        return None
+    log_dir = app_data_dir() / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_path = log_dir / "api.log"
+    stream = open(log_path, "a", encoding="utf-8", buffering=1)
+    if sys.stdout is None:
+        sys.stdout = stream  # type: ignore[assignment]
+    if sys.stderr is None:
+        sys.stderr = stream  # type: ignore[assignment]
+    return log_path
