@@ -16,3 +16,6 @@ class Inset(BaseModel):
 class Layers(BaseModel):
     background: Literal["camera", "media"] = "media"
     inset: Inset = Field(default_factory=Inset)
+    # Preview framing pan (0–1 → object-position); export still uses cover unless reframe runs.
+    pan_x: float = 0.5
+    pan_y: float = 0.5

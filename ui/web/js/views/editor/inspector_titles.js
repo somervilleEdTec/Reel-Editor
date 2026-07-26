@@ -5,7 +5,6 @@ import { showError } from "./inspector_helpers.js";
 export function mountInspectorTitles(el, { copy, flashSaved, rerender }) {
   el.innerHTML = `<div class="cluster">
     <p class="section-label">${copy.titles}</p>
-    <div class="title-list"></div>
     <div class="title-add">
       <input class="new-title-text" placeholder="${copy.titleText}" />
       <div class="compact-grid">
@@ -14,6 +13,7 @@ export function mountInspectorTitles(el, { copy, flashSaved, rerender }) {
       </div>
       <button type="button" class="secondary add-title">${copy.addTitle}</button>
     </div>
+    <div class="title-list"></div>
   </div>`;
   renderList(el.querySelector(".title-list"), copy, flashSaved, rerender);
   el.querySelector(".add-title").onclick = () => addTitle(el, flashSaved, rerender);

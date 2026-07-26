@@ -27,6 +27,13 @@ body.branded {
   background-repeat: repeat-y, no-repeat, no-repeat, no-repeat;
 }
 #app { min-height: 100vh; }
+body.editor-chrome,
+body.editor-chrome #app {
+  height: 100%;
+  max-height: 100dvh;
+  overflow: hidden;
+  min-height: 0;
+}
 h1, h2, .display {
   font-family: var(--font-display);
   font-weight: 700;

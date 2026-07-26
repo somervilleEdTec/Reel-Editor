@@ -108,6 +108,8 @@ class DeleteWordBody(BaseModel):
 class LayersBody(BaseModel):
     background: Literal["camera", "media"] | None = None
     inset: dict | None = None
+    pan_x: float | None = None
+    pan_y: float | None = None
 
 
 class CaptionsBody(BaseModel):
@@ -207,6 +209,10 @@ def update_layers(body: LayersBody):
         p.layers.background = body.background
     if body.inset:
         p.layers.inset = p.layers.inset.model_copy(update=body.inset)
+    if body.pan_x is not None:
+        p.layers.pan_x = max(0.0, min(1.0, body.pan_x))
+    if body.pan_y is not None:
+        p.layers.pan_y = max(0.0, min(1.0, body.pan_y))
     _save(p)
     return p.layers.model_dump()
 

@@ -1,3 +1,7 @@
+import { state } from "../../../store.js";
+
+const SNAP_PX = 8;
+
 /**
  * Shared playhead line inside .tl-playhead-layer.
  * Supports drag-to-scrub and programmatic updates.
@@ -20,12 +24,28 @@ export function mountPlayhead(layerEl, { zoom, scrollEl, onSeek, getDuration }) 
     if (!dragging) return;
     const canvasLeft = layerEl.getBoundingClientRect().left;
     const x = Math.max(0, e.clientX - canvasLeft);
-    const t = Math.min(x / layerEl._ph.zoom, getDuration());
+    let t = Math.min(x / layerEl._ph.zoom, getDuration());
+    t = snapTime(t, layerEl._ph.zoom);
     line.style.left = `${t * layerEl._ph.zoom}px`;
     onSeek(t);
   });
 
   line.addEventListener("pointerup", () => { dragging = false; });
+}
+
+function snapTime(t, zoom) {
+  const segs = state.edl?.segments || [];
+  if (!segs.length) return t;
+  const thresh = SNAP_PX / zoom;
+  let best = t;
+  let bestD = thresh;
+  for (const s of segs) {
+    for (const edge of [s.output_start, s.output_end]) {
+      const d = Math.abs(edge - t);
+      if (d < bestD) { bestD = d; best = edge; }
+    }
+  }
+  return best;
 }
 
 /** Move playhead to output time t (call from store subscription). */

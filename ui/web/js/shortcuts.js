@@ -2,7 +2,7 @@ let _handler = null;
 
 /**
  * Register editor keyboard shortcuts. Call once when the editor mounts.
- * @param {{ getVideo, blade, undo, redo, zoomIn, zoomOut, showHelp }} actions
+ * @param {{ getVideo, blade, setTool, undo, redo, zoomIn, zoomOut, fit, trimStart, trimEnd, showHelp, deleteSelected }} actions
  */
 export function registerEditorShortcuts(actions) {
   if (_handler) unregisterEditorShortcuts();
@@ -16,11 +16,23 @@ export function registerEditorShortcuts(actions) {
       e.preventDefault();
       const v = actions.getVideo?.();
       if (v) { if (v.paused) v.play().catch(() => {}); else v.pause(); }
-    } else if (e.code === "KeyB" && !ctrl) {
+    } else if (e.code === "KeyV" && !ctrl) {
+      e.preventDefault();
+      actions.setTool?.("select");
+    } else if (e.code === "KeyB" && ctrl) {
       e.preventDefault();
       actions.blade?.();
+    } else if (e.code === "KeyB" && !ctrl) {
+      e.preventDefault();
+      actions.setTool?.("blade");
     } else if ((e.key === "Delete" || e.key === "Backspace") && !ctrl) {
       actions.deleteSelected?.();
+    } else if (e.key === "[" && !ctrl) {
+      e.preventDefault();
+      actions.trimStart?.();
+    } else if (e.key === "]" && !ctrl) {
+      e.preventDefault();
+      actions.trimEnd?.();
     } else if (e.code === "KeyZ" && ctrl && e.shiftKey) {
       e.preventDefault();
       actions.redo?.();
@@ -31,6 +43,8 @@ export function registerEditorShortcuts(actions) {
       actions.zoomIn?.();
     } else if (e.key === "-" && !ctrl) {
       actions.zoomOut?.();
+    } else if (e.key === "\\" && !ctrl) {
+      actions.fit?.();
     } else if (e.key === "?" && !ctrl) {
       actions.showHelp?.();
     }

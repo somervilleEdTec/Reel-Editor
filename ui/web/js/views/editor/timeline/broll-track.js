@@ -3,10 +3,13 @@ import { state, setState } from "../../../store.js";
 import { toast } from "../../../components/toast.js";
 import { openFileBrowser } from "../../../components/filebrowser.js";
 import { isVideoName } from "../../../formats.js";
+import { setSelection, clearSelection } from "./selection.js";
+import { showContextMenu } from "./context-menu.js";
 
-export function mountBrollTrack(el, { zoom, flashSaved }) {
+export function mountBrollTrack(el, { zoom, flashSaved, actions }) {
   el._zoom = zoom;
   el._flashSaved = flashSaved;
+  el._actions = actions || {};
   renderBroll(el);
 }
 
@@ -55,17 +58,99 @@ function renderBroll(el) {
     block.title = name;
     block.addEventListener("click", (e) => {
       e.stopPropagation();
-      selectClip(el, block, idx);
+      selectClip(el, block, idx, clip);
     });
+    block.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      selectClip(el, block, idx, clip);
+      showContextMenu(e.clientX, e.clientY, [
+        { label: "Delete clip", action: () => deleteSelectedClip(el, el._flashSaved) },
+      ]);
+    });
+    wireTrimHandles(block, clip, idx, el, start, dur);
     wireDrag(block, el);
     el.appendChild(block);
   });
 }
 
-function selectClip(el, block, idx) {
-  el.querySelectorAll(".tl-clip.selected").forEach((b) => b.classList.remove("selected"));
-  block.classList.add("selected");
+function selectClip(el, block, idx, clip) {
+  setSelection("clip", { idx, clip, el: block }, { brollEl: el });
   el._selectedIdx = idx;
+}
+
+function nearestWordId(outTime, words, edl, prefer) {
+  const segs = edl?.segments || [];
+  let src = null;
+  for (const s of segs) {
+    if (outTime >= s.output_start && outTime <= s.output_end + 0.001) {
+      src = s.source_start + (outTime - s.output_start);
+      break;
+    }
+  }
+  if (src == null) return null;
+  let best = null;
+  let bestDist = Infinity;
+  for (const w of words) {
+    if (w.deleted) continue;
+    const mid = (w.start_s + w.end_s) / 2;
+    const d = Math.abs(mid - src);
+    if (d < bestDist) {
+      bestDist = d;
+      best = w;
+    }
+  }
+  return best?.id ?? prefer;
+}
+
+function wireTrimHandles(block, clip, idx, trackEl, start, dur) {
+  [{ side: "left", cls: "left" }, { side: "right", cls: "right" }].forEach(({ side, cls }) => {
+    const h = document.createElement("div");
+    h.className = `tl-trim ${cls}`;
+    block.appendChild(h);
+    let startX = 0;
+    h.addEventListener("pointerdown", (e) => {
+      e.stopPropagation();
+      block.draggable = false;
+      h.setPointerCapture(e.pointerId);
+      startX = e.clientX;
+      selectClip(trackEl, block, idx, clip);
+    });
+    h.addEventListener("pointermove", (e) => {
+      const dx = e.clientX - startX;
+      const dt = dx / trackEl._zoom;
+      if (side === "left") {
+        block.style.left = `${(start + dt) * trackEl._zoom}px`;
+        block.style.width = `${Math.max(4, (dur - dt) * trackEl._zoom)}px`;
+        h._out = start + dt;
+      } else {
+        block.style.width = `${Math.max(4, (dur + dt) * trackEl._zoom)}px`;
+        h._out = start + dur + dt;
+      }
+    });
+    h.addEventListener("pointerup", async () => {
+      block.draggable = true;
+      if (h._out == null) return;
+      const words = state.project?.words || [];
+      const edl = state.edl;
+      const wid = nearestWordId(h._out, words, edl, side === "left" ? clip.word_start_id : clip.word_end_id);
+      h._out = null;
+      if (wid == null) return;
+      const body = { id: clip.id };
+      if (side === "left") body.word_start_id = wid;
+      else body.word_end_id = wid;
+      try {
+        await post("/assembly/clip", body);
+        const project = await get("/project");
+        setState({ project });
+        renderBroll(trackEl);
+        trackEl._flashSaved();
+      } catch (err) {
+        toast(String(err.message || err), "danger");
+        renderBroll(trackEl);
+      }
+    });
+  });
 }
 
 function wireDrag(block, el) {
@@ -149,14 +234,17 @@ export async function importBrollClip(el, copy) {
 }
 
 export async function deleteSelectedClip(el, flashSaved) {
-  if (el._selectedIdx == null) return;
+  const idx = el._selectedIdx;
+  if (idx == null) return;
   const clips = state.project?.assembly?.clips || [];
-  const clip = clips[el._selectedIdx];
+  const clip = clips[idx];
   if (!clip?.id) return;
   try {
     await del(`/assembly/clip/${encodeURIComponent(clip.id)}`);
     const project = await get("/project");
     setState({ project });
+    el._selectedIdx = null;
+    clearSelection({ brollEl: el });
     renderBroll(el);
     flashSaved();
   } catch (err) {

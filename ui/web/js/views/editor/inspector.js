@@ -6,17 +6,43 @@ import { mountInspectorSnapshots } from "./inspector_snapshots.js";
 import { mountInspectorTitles } from "./inspector_titles.js";
 import { mountInspectorTransitions } from "./inspector_transitions.js";
 
+const SECTIONS = [
+  { key: "basic", label: "Basics", mount: mountInspectorBasics, rerender: true },
+  { key: "audio", labelKey: "audio", mount: mountInspectorAudio },
+  { key: "transitions", labelKey: "transitions", mount: mountInspectorTransitions },
+  { key: "titles", labelKey: "titles", mount: mountInspectorTitles, rerender: true },
+  { key: "rank", labelKey: "rank", mount: mountInspectorRank, rerender: true },
+  { key: "reframe", labelKey: "tools", mount: mountInspectorReframe },
+  { key: "snapshots", labelKey: "snapshots", mount: mountInspectorSnapshots, rerender: true },
+];
+
 export function mountInspector(el, { copy, flashSaved }) {
   const rerender = () => mountInspector(el, { copy, flashSaved });
-  el.innerHTML = `<div class="ins-basic"></div><div class="ins-audio"></div>
-    <div class="ins-transitions"></div><div class="ins-titles"></div>
-    <div class="ins-rank"></div><div class="ins-reframe"></div>
-    <div class="ins-snapshots"></div>`;
-  mountInspectorBasics(el.querySelector(".ins-basic"), { copy, flashSaved, rerender });
-  mountInspectorAudio(el.querySelector(".ins-audio"), { copy, flashSaved });
-  mountInspectorTransitions(el.querySelector(".ins-transitions"), { copy, flashSaved });
-  mountInspectorTitles(el.querySelector(".ins-titles"), { copy, flashSaved, rerender });
-  mountInspectorRank(el.querySelector(".ins-rank"), { copy, flashSaved, rerender });
-  mountInspectorReframe(el.querySelector(".ins-reframe"), { copy, flashSaved });
-  mountInspectorSnapshots(el.querySelector(".ins-snapshots"), { copy, flashSaved, rerender });
+  const openKeys = new Set(
+    [...el.querySelectorAll(".ins-section.open")].map((n) => n.dataset.key),
+  );
+  if (!openKeys.size) openKeys.add("basic");
+
+  el.innerHTML = SECTIONS.map((s) => {
+    const label = s.label || copy[s.labelKey] || s.key;
+    const open = openKeys.has(s.key);
+    return `<div class="ins-section${open ? " open" : ""}" data-key="${s.key}">
+      <button type="button" class="ins-toggle" aria-expanded="${open}">${label}</button>
+      <div class="ins-body ins-${s.key}"></div>
+    </div>`;
+  }).join("");
+
+  el.querySelectorAll(".ins-toggle").forEach((btn) => {
+    btn.onclick = () => {
+      const section = btn.closest(".ins-section");
+      const willOpen = !section.classList.contains("open");
+      section.classList.toggle("open", willOpen);
+      btn.setAttribute("aria-expanded", String(willOpen));
+    };
+  });
+
+  SECTIONS.forEach((s) => {
+    const body = el.querySelector(`.ins-${s.key}`);
+    s.mount(body, { copy, flashSaved, ...(s.rerender ? { rerender } : {}) });
+  });
 }

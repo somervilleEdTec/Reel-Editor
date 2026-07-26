@@ -119,10 +119,14 @@ export async function renderEditor(root, st) {
   registerEditorShortcuts({
     getVideo,
     blade: () => timelineEl._blade?.(),
+    setTool: (t) => timelineEl._setTool?.(t),
     undo: undoAct,
     redo: redoAct,
     zoomIn: () => timelineEl.querySelector("[data-a=zoom-in]")?.click(),
     zoomOut: () => timelineEl.querySelector("[data-a=zoom-out]")?.click(),
+    fit: () => timelineEl._fitZoom?.(),
+    trimStart: () => timelineEl._trimStart?.(),
+    trimEnd: () => timelineEl._trimEnd?.(),
     showHelp: () => {
       import("../../components/toast.js").then(({ toast: t }) => t(ct.shortcutsHint, "ok"));
     },

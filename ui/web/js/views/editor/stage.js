@@ -7,14 +7,19 @@ import { srcToOut, nextKeptSeg } from "./timeline/edl-utils.js";
 export function mountStage(el, { copy, flashSaved }) {
   const project = state.project;
   const zones = state.safezones || {};
-  el.innerHTML = `<div class="stage-well settle">
+  el.innerHTML = `<div class="stage-frame">
+    <div class="stage-well settle">
       <div class="stage">
         <video class="stage-video" muted playsinline loop preload="metadata"
           src="/media/source?v=${encodeURIComponent(state.projectPath || "")}"></video>
         <div class="safe" hidden></div>
+        <div class="stage-crop" hidden>
+          <div class="stage-crop-window" title="Drag to pan framing"></div>
+        </div>
         <div class="inset"><span class="inset-handle" title="Drag to resize"></span></div>
         <div class="caption"></div>
       </div>
+    </div>
     </div>
     <div class="transport">
       <button type="button" class="play-toggle" aria-label="${copy.play}">
@@ -28,6 +33,7 @@ export function mountStage(el, { copy, flashSaved }) {
       <select class="sz-platform">
         ${Object.keys(zones).map((k) => `<option value="${k}">${k}</option>`).join("")}
       </select>
+      <label><input type="checkbox" class="crop-toggle" /> ${copy.cropFrame || "Crop"}</label>
     </div>`;
 
   const stage = el.querySelector(".stage");
@@ -36,6 +42,7 @@ export function mountStage(el, { copy, flashSaved }) {
   const caption = el.querySelector(".caption");
   const safe = el.querySelector(".safe");
   const video = el.querySelector(".stage-video");
+  const crop = el.querySelector(".stage-crop");
   el._video = video;
 
   video.addEventListener("error", () => {
@@ -49,6 +56,9 @@ export function mountStage(el, { copy, flashSaved }) {
     inset.style.left = `${p.layers.inset.x * 100}%`;
     inset.style.top = `${p.layers.inset.y * 100}%`;
     inset.style.width = `${p.layers.inset.w * 100}%`;
+    const px = (p.layers.pan_x ?? 0.5) * 100;
+    const py = (p.layers.pan_y ?? 0.5) * 100;
+    video.style.objectPosition = `${px}% ${py}%`;
     paintCaption(caption, p, state.presets || {});
   }
   applyLayout();
@@ -58,6 +68,7 @@ export function mountStage(el, { copy, flashSaved }) {
   wireInsetMove(stage, inset, flashSaved);
   wireInsetResize(stage, inset, handle, flashSaved);
   wireCaptionDrag(stage, caption, flashSaved);
+  wireCropMode(el, crop, video, flashSaved, applyLayout);
 
   el.querySelector(".stage-well").addEventListener(
     "animationend",
@@ -201,6 +212,48 @@ function wireCaptionDrag(stage, caption, flashSaved) {
       state.project.captions.y = y;
       setState({ project: state.project });
       flashSaved();
+    } catch (err) {
+      toast(String(err.message || err), "danger");
+    }
+  });
+}
+
+function wireCropMode(el, crop, video, flashSaved, applyLayout) {
+  const toggle = el.querySelector(".crop-toggle");
+  const win = crop.querySelector(".stage-crop-window");
+  toggle.onchange = () => {
+    crop.hidden = !toggle.checked;
+    el.querySelector(".stage-well").classList.toggle("cropping", toggle.checked);
+  };
+  let startX = 0, startY = 0, ox = 0.5, oy = 0.5;
+  win.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    win.setPointerCapture(e.pointerId);
+    startX = e.clientX;
+    startY = e.clientY;
+    ox = state.project.layers.pan_x ?? 0.5;
+    oy = state.project.layers.pan_y ?? 0.5;
+  });
+  win.addEventListener("pointermove", (e) => {
+    if (!win.hasPointerCapture(e.pointerId)) return;
+    const r = el.querySelector(".stage").getBoundingClientRect();
+    const dx = (e.clientX - startX) / r.width;
+    const dy = (e.clientY - startY) / r.height;
+    const pan_x = clamp01(ox - dx);
+    const pan_y = clamp01(oy - dy);
+    state.project.layers.pan_x = pan_x;
+    state.project.layers.pan_y = pan_y;
+    video.style.objectPosition = `${pan_x * 100}% ${pan_y * 100}%`;
+  });
+  win.addEventListener("pointerup", async () => {
+    try {
+      await post("/layers", {
+        pan_x: state.project.layers.pan_x ?? 0.5,
+        pan_y: state.project.layers.pan_y ?? 0.5,
+      });
+      setState({ project: state.project });
+      flashSaved();
+      applyLayout();
     } catch (err) {
       toast(String(err.message || err), "danger");
     }
