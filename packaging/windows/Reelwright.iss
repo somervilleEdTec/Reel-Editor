@@ -6,6 +6,11 @@
 #define MyAppVersion "0.1.0"
 #endif
 #define MyAppPublisher "Somerville EdTec"
+; Reelwright.exe is the Tauri shell (src-tauri/target/release/Reelwright.exe), copied
+; into the bundle by build.ps1. It falls back to the PyInstaller browser launcher when
+; the Tauri build is skipped, so the filename stays the same either way.
+; Tauri needs the WebView2 runtime: evergreen on Windows 10 21H2+/11. To support older
+; images, add the Microsoft bootstrapper to [Files] and run it from [Run] before launch.
 #define MyAppExeName "Reelwright.exe"
 #define DistDir "..\..\dist\windows"
 

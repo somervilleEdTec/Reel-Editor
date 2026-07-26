@@ -3,10 +3,16 @@
 #   powershell -ExecutionPolicy Bypass -File packaging/windows/build.ps1
 #   powershell -ExecutionPolicy Bypass -File packaging/windows/build.ps1 -Version 0.1.1
 #   powershell -ExecutionPolicy Bypass -File packaging/windows/build.ps1 -FetchFfmpeg
+#   powershell -ExecutionPolicy Bypass -File packaging/windows/build.ps1 -SkipTauri
+#
+# Shipped Reelwright.exe is the Tauri shell (src-tauri). When Rust is unavailable, or
+# with -SkipTauri, the bundle falls back to the legacy PyInstaller browser launcher.
 
 param(
   [string]$Version = "0.1.0",
-  [switch]$FetchFfmpeg
+  [switch]$FetchFfmpeg,
+  [switch]$SkipTauri,
+  [switch]$RequireTauri
 )
 
 $ErrorActionPreference = "Stop"
@@ -32,7 +38,41 @@ try {
   pyinstaller --noconfirm --clean packaging/windows/launcher.spec
 
   Copy-Item -Recurse "dist\reelwright-api\*" $Bundle
-  Copy-Item "dist\Reelwright.exe" (Join-Path $Bundle "Reelwright.exe")
+
+  # Tauri shell: WebView2 window that starts reelwright-api.exe and loads 127.0.0.1:8765.
+  # Needs the Rust MSVC toolchain (see src-tauri/README.md); optional so Python-only
+  # machines can still produce a bundle.
+  $TauriExe = Join-Path $Root "src-tauri\target\release\Reelwright.exe"
+  if (-not $SkipTauri) {
+    if (Get-Command cargo -ErrorAction SilentlyContinue) {
+      Push-Location (Join-Path $Root "src-tauri")
+      try {
+        cargo build --release --locked
+        if ($LASTEXITCODE -ne 0) { throw "cargo build failed ($LASTEXITCODE)" }
+      }
+      catch {
+        if ($RequireTauri) { throw }
+        Write-Warning "Tauri build failed: $_"
+      }
+      finally { Pop-Location }
+    }
+    elseif ($RequireTauri) {
+      throw "cargo not found; install Rust (https://rustup.rs) or pass -SkipTauri"
+    }
+    else {
+      Write-Warning "cargo not found; falling back to the browser launcher"
+    }
+  }
+
+  if ((-not $SkipTauri) -and (Test-Path $TauriExe)) {
+    Copy-Item $TauriExe (Join-Path $Bundle "Reelwright.exe")
+    # Keep the browser launcher alongside for headless/WebView2-less fallback.
+    Copy-Item "dist\Reelwright.exe" (Join-Path $Bundle "Reelwright-browser.exe")
+  }
+  else {
+    if ($RequireTauri) { throw "Tauri shell missing: $TauriExe" }
+    Copy-Item "dist\Reelwright.exe" (Join-Path $Bundle "Reelwright.exe")
+  }
 
   Copy-Item "packaging\windows\uninstall_kill.ps1" (Join-Path $Bundle "uninstall_kill.ps1")
 
