@@ -1,0 +1,5 @@
+{
+  "instagram": {"top": 0.10, "bottom": 0.22, "right": 0.16},
+  "tiktok": {"top": 0.08, "bottom": 0.26, "right": 0.20},
+  "youtube": {"top": 0.06, "bottom": 0.16, "right": 0.14}
+}

@@ -1,0 +1,37 @@
+{
+  "sticker": {
+    "font": "Arial",
+    "size_px": 68,
+    "weight": 800,
+    "italic": true,
+    "fill": "#FFFFFF",
+    "box": "#C0246B",
+    "box_padding_px": 14,
+    "corner_radius_px": 0,
+    "uppercase": true,
+    "outline_px": 0
+  },
+  "block": {
+    "font": "Arial",
+    "size_px": 62,
+    "weight": 700,
+    "italic": false,
+    "fill": "#FFFFFF",
+    "box": "#000000",
+    "box_padding_px": 10,
+    "corner_radius_px": 0,
+    "uppercase": false,
+    "outline_px": 0
+  },
+  "clean": {
+    "font": "Arial",
+    "size_px": 58,
+    "weight": 600,
+    "italic": false,
+    "fill": "#FFFFFF",
+    "box": null,
+    "shadow_px": 4,
+    "uppercase": false,
+    "outline_px": 2
+  }
+}

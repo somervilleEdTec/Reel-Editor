@@ -1,0 +1,14 @@
+{
+  "portrait_9_16": {
+    "width": 1080,
+    "height": 1920,
+    "captions": {"y": 0.60, "max_words_visible": 3, "preset": "sticker"},
+    "inset": {"x": 0.06, "y": 0.52, "w": 0.50}
+  },
+  "landscape_16_9": {
+    "width": 1920,
+    "height": 1080,
+    "captions": {"y": 0.78, "max_words_visible": 5, "preset": "clean"},
+    "inset": {"x": 0.70, "y": 0.55, "w": 0.28}
+  }
+}
