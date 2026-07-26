@@ -13,6 +13,7 @@ REQUIRED = (
     "reelwrite.api.media_routes",
     "reelwrite.api.fs_access",
     "reelwrite.api.fs_routes",
+    "reelwrite.api.native_pick",
 )
 
 

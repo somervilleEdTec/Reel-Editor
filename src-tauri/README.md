@@ -36,7 +36,10 @@ cargo run    # from src-tauri/
 
 With no sibling `reelwrite-api.exe`, the shell falls back to
 `python -m reelwrite.api.server` from the repo root, so run `pip install -e ".[dev]"`
-first. If an API is already listening on 8765 it is reused and left running on exit.
+first. If an API is already listening on 8765 it is reused only when `/health`
+reports a compatible `platform` (so a Linux/cloud forward cannot serve the
+Windows UI); otherwise the shell shows an error. A matching API is left running
+on exit.
 
 ## Layout
 

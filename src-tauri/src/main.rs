@@ -44,25 +44,60 @@ fn main() {
         });
 }
 
-/// Start the API and navigate to it. An API already on 8765 (a dev server, say) is
-/// reused as-is, and left running when the shell exits.
+/// Start the API and navigate to it.
+///
+/// An API already on 8765 is reused only when its `/health` platform matches this
+/// shell (so a Linux/cloud forward on the same port cannot reject Windows paths).
 fn boot(app: &AppHandle) {
-    if !health::is_healthy(API_ADDR, HEALTH_PATH) {
-        if let Err(err) = api_process::start(app) {
-            report(app, &format!("Could not start the Reelwrite API: {err}"));
-            return;
-        }
-        if !health::wait_until_healthy(API_ADDR, HEALTH_PATH, STARTUP_TIMEOUT) {
-            report(app, "The Reelwrite API did not respond on 127.0.0.1:8765.");
+    if let Some(info) = health::health_info(API_ADDR, HEALTH_PATH) {
+        if info.ok {
+            if platform_compatible(info.platform.as_deref()) {
+                navigate(app);
+                return;
+            }
+            let remote = info.platform.as_deref().unwrap_or("unknown");
+            report(
+                app,
+                &format!(
+                    "Port 8765 is already serving a Reelwrite API for {remote}, \
+                     but this Windows app needs a Windows API. Close the other \
+                     process (or stop the port forward), then restart Reelwrite."
+                ),
+            );
             return;
         }
     }
 
+    if let Err(err) = api_process::start(app) {
+        report(app, &format!("Could not start the Reelwrite API: {err}"));
+        return;
+    }
+    if !health::wait_until_healthy(API_ADDR, HEALTH_PATH, STARTUP_TIMEOUT) {
+        report(app, "The Reelwrite API did not respond on 127.0.0.1:8765.");
+        return;
+    }
+    navigate(app);
+}
+
+fn navigate(app: &AppHandle) {
     let Ok(url) = API_URL.parse() else { return };
     if let Some(window) = app.get_webview_window("main") {
         if let Err(err) = window.navigate(url) {
             report(app, &format!("Could not open the Reelwrite UI: {err}"));
         }
+    }
+}
+
+fn platform_compatible(remote: Option<&str>) -> bool {
+    // Older APIs omit platform — allow reuse for local dev servers.
+    let Some(remote) = remote else { return true };
+    #[cfg(windows)]
+    {
+        remote == "win32"
+    }
+    #[cfg(not(windows))]
+    {
+        remote != "win32"
     }
 }
 

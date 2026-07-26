@@ -164,6 +164,8 @@
     "multiHint": "Ctrl/Cmd-click to multi-select; Shift-click for range",
     "needSelection": "Select a video, or paste a full file path.",
     "badPath": "Enter a full folder or file path.",
-    "pathMissing": "Path not found."
+    "pathMissing": "Path not found.",
+    "thisPc": "This PC\u2026",
+    "platformMismatch": "This UI is talking to a non-Windows Reelwrite API. Close other apps using port 8765, then restart Reelwrite."
   }
 }

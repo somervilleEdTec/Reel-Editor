@@ -61,6 +61,7 @@ export function openFileBrowser({
     </label>
     <div class="fs-actions">
       <button type="button" class="secondary cancel">${c.cancel}</button>
+      <button type="button" class="secondary native-pick" hidden>${c.thisPc || "This PC…"}</button>
       <button type="button" class="secondary reveal" hidden>${c.reveal || "Reveal"}</button>
       ${allowDirs ? `<button type="button" class="use-dir">${c.useFolder || "Use this folder"}</button>` : ""}
       <button type="button" class="${allowDirs ? "secondary" : ""} open">${c.open}</button>
@@ -78,6 +79,7 @@ export function openFileBrowser({
   const pathInput = modal.querySelector(".fs-path");
   const statusEl = modal.querySelector(".fs-status");
   const revealBtn = modal.querySelector(".reveal");
+  const nativeBtn = modal.querySelector(".native-pick");
   const upBtn = modal.querySelector(".fs-up");
 
   let current = startDir || null;
@@ -433,6 +435,21 @@ export function openFileBrowser({
     }
   };
 
+  nativeBtn.onclick = async () => {
+    try {
+      const data = await post("/fs/pick", { allow_dirs: allowDirs, multiple: !allowDirs });
+      if (data.cancelled || !data.paths?.length) return;
+      if (allowDirs) {
+        const dir = data.paths[0];
+        if (dir) await load(dir);
+        return;
+      }
+      pick(data.paths);
+    } catch (err) {
+      showMsg(String(err.message || err));
+    }
+  };
+
   search.oninput = () => {
     selectedSet.clear();
     lastClickIdx = -1;
@@ -464,6 +481,18 @@ export function openFileBrowser({
 
   setViewMode(viewMode);
   (async () => {
+    let platformWarn = "";
+    try {
+      const caps = await get("/fs/capabilities");
+      nativeBtn.hidden = !caps.native_pick;
+      if (caps.platform && caps.platform !== "win32" && /windows/i.test(navigator.userAgent)) {
+        platformWarn =
+          c.platformMismatch ||
+          "This UI is talking to a non-Windows Reelwrite API. Close other apps using port 8765, then restart Reelwrite.";
+      }
+    } catch {
+      nativeBtn.hidden = true;
+    }
     try {
       const data = await get("/fs/places");
       places = data.places || [];
@@ -476,6 +505,7 @@ export function openFileBrowser({
       places.find((p) => p.id === "home")?.path ||
       null;
     await load(preferred);
+    if (platformWarn) showMsg(platformWarn);
     search.focus();
   })();
 }
