@@ -3,8 +3,18 @@ from __future__ import annotations
 import argparse
 import sys
 
-from reelwright.cli import export_cmd, import_vtt_cmd, init_cmd, rank_cmd, run_cmd
-from reelwright.cli import select_cmd, transcribe_cmd
+from . import (
+    auto_distribute_cmd,
+    export_cmd,
+    import_clips_cmd,
+    import_vtt_cmd,
+    init_cmd,
+    rank_cmd,
+    record_vo_cmd,
+    run_cmd,
+    select_cmd,
+    transcribe_cmd,
+)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -13,6 +23,9 @@ def main(argv: list[str] | None = None) -> int:
     init_cmd.register(sub)
     transcribe_cmd.register(sub)
     import_vtt_cmd.register(sub)
+    import_clips_cmd.register(sub)
+    record_vo_cmd.register(sub)
+    auto_distribute_cmd.register(sub)
     export_cmd.register(sub)
     run_cmd.register(sub)
     rank_cmd.register(sub)
