@@ -7,11 +7,10 @@ from uuid import uuid4
 
 from fastapi import HTTPException
 
-from reelwrite.api import app as app_module
+from reelwrite.api.fs_access import resolve_fs_path
 from reelwrite.ingest.probe import probe
 from reelwrite.models.project import Project
 from reelwrite.models.source import Source
-from reelwrite.paths import normalize_user_path
 
 EditableRole = Literal["media", "camera", "voiceover"]
 
@@ -27,8 +26,13 @@ def add_sources(project: Project, paths: list[str], role: EditableRole) -> list[
     added = []
     for raw in paths:
         try:
-            normalized = str(normalize_user_path(raw))
-            path = app_module._safe_path(normalized, must_exist=True)
+            resolved = resolve_fs_path(raw)
+            if not resolved["ok"] or resolved["kind"] != "file":
+                raise HTTPException(
+                    404 if resolved["kind"] == "missing" else 400,
+                    resolved.get("error") or f"Source file not found: {raw}",
+                )
+            path = resolved["path"]
             if not Path(path).is_file():
                 raise HTTPException(400, f"Source is not a file: {path}")
             added.append(probe(path, source_id=f"src_{uuid4().hex[:12]}", role=role))

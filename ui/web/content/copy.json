@@ -140,16 +140,20 @@
   "filebrowser": {
     "title": "Choose a file",
     "titleFolder": "Choose a folder",
-    "paste": "Or paste a path",
+    "paste": "Or paste a full file path",
     "open": "Open",
     "cancel": "Cancel",
     "up": "Up",
+    "go": "Go",
+    "places": "Places",
+    "pathPlaceholder": "Folder path",
+    "browsing": "Browsing",
     "search": "Search this folder",
-    "empty": "Nothing to show in this folder.",
+    "empty": "No videos in this folder. Pick a Place on the left, or paste a path.",
     "emptyFiltered": "No matches in this folder.",
     "loadError": "Couldn't open this folder.",
     "useFolder": "Use this folder",
-    "hintFile": "Double-click a file, or select it and press Enter. Esc cancels.",
+    "hintFile": "Use Places to jump folders. Double-click a video, or paste a full path. Esc cancels.",
     "hintFolder": "Open the folder you want, then choose \u201cUse this folder\u201d.",
     "largeIcons": "Large Icons",
     "details": "Details",
@@ -157,6 +161,9 @@
     "reveal": "Reveal in Explorer",
     "revealUnsupported": "Reveal not supported on this platform",
     "selectedCount": "files selected",
-    "multiHint": "Ctrl/Cmd-click to multi-select; Shift-click for range"
+    "multiHint": "Ctrl/Cmd-click to multi-select; Shift-click for range",
+    "needSelection": "Select a video, or paste a full file path.",
+    "badPath": "Enter a full folder or file path.",
+    "pathMissing": "Path not found."
   }
 }

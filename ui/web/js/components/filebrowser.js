@@ -1,14 +1,14 @@
 import { get, post } from "../api.js";
 import { state } from "../store.js";
+import { crumbSegments, fmtSize, looksLikePath, normalizePastedPath } from "./fs_path.js";
 
 /**
- * Modal file/folder browser: breadcrumbs, search, keyboard, large-icons / details view,
- * multi-select (Ctrl/Cmd, Shift-range), Reveal in Explorer.
+ * Media-library file browser: places sidebar, path bar, breadcrumbs,
+ * icons/details, multi-select, paste-to-navigate-or-pick.
  *
  * Callbacks:
- *   onPick(path)           — single path, backward-compat
- *   onPickMany(paths[])    — preferred; called with array of selected paths
- * Both are optional; if onPickMany is set it takes priority.
+ *   onPick(path)           — single path (compat)
+ *   onPickMany(paths[])    — preferred when set
  */
 export function openFileBrowser({
   title,
@@ -37,13 +37,27 @@ export function openFileBrowser({
       </div>
     </div>
     <p class="fs-hint">${allowDirs ? c.hintFolder || "" : c.hintFile || ""}</p>
-    <nav class="fs-crumbs" aria-label="Path"></nav>
-    <input class="fs-search" type="search" placeholder="${c.search || "Search this folder"}" />
-    <ul class="fs-list" role="listbox" hidden></ul>
-    <div class="fs-grid" role="listbox" hidden></div>
-    <div class="fs-msg" hidden></div>
+    <div class="fs-shell">
+      <aside class="fs-places" aria-label="${c.places || "Places"}"></aside>
+      <div class="fs-main">
+        <div class="fs-toolbar">
+          <button type="button" class="secondary fs-up" title="${c.up || "Up"}" disabled>↑</button>
+          <form class="fs-path-form">
+            <input class="fs-path mono" name="path" spellcheck="false" autocomplete="off"
+              placeholder="${c.pathPlaceholder || "Folder path"}" />
+            <button type="submit" class="secondary fs-go">${c.go || "Go"}</button>
+          </form>
+        </div>
+        <nav class="fs-crumbs" aria-label="Path"></nav>
+        <input class="fs-search" type="search" placeholder="${c.search || "Search this folder"}" />
+        <ul class="fs-list" role="listbox" hidden></ul>
+        <div class="fs-grid" role="listbox" hidden></div>
+        <div class="fs-msg" hidden></div>
+      </div>
+    </div>
+    <div class="fs-status" aria-live="polite"></div>
     <label class="field">${pasteHint || c.paste}
-      <input class="mono paste" />
+      <input class="mono paste" spellcheck="false" autocomplete="off" />
     </label>
     <div class="fs-actions">
       <button type="button" class="secondary cancel">${c.cancel}</button>
@@ -57,18 +71,23 @@ export function openFileBrowser({
   const listEl = modal.querySelector(".fs-list");
   const gridEl = modal.querySelector(".fs-grid");
   const crumbs = modal.querySelector(".fs-crumbs");
+  const placesEl = modal.querySelector(".fs-places");
   const msg = modal.querySelector(".fs-msg");
   const search = modal.querySelector(".fs-search");
   const paste = modal.querySelector(".paste");
+  const pathInput = modal.querySelector(".fs-path");
+  const statusEl = modal.querySelector(".fs-status");
   const revealBtn = modal.querySelector(".reveal");
+  const upBtn = modal.querySelector(".fs-up");
 
   let current = startDir || null;
+  let parentDir = null;
   let entries = [];
   let selectedSet = new Set();
   let lastClickIdx = -1;
   let viewMode = defaultView || "icons";
+  let places = [];
 
-  // ── view toggle ──────────────────────────────────────────────────────────
   modal.querySelectorAll(".fs-vbtn").forEach((b) => {
     b.onclick = () => setViewMode(b.dataset.view);
   });
@@ -83,7 +102,6 @@ export function openFileBrowser({
     renderView();
   }
 
-  // ── close / pick ─────────────────────────────────────────────────────────
   function close(cancelled) {
     backdrop.remove();
     document.removeEventListener("keydown", onKey, true);
@@ -91,15 +109,17 @@ export function openFileBrowser({
   }
 
   function pick(paths) {
+    const arr = Array.isArray(paths) ? paths.filter(Boolean) : [paths].filter(Boolean);
+    if (!arr.length) {
+      showMsg(c.needSelection || "Select a video, or paste a full file path.");
+      return;
+    }
     backdrop.remove();
     document.removeEventListener("keydown", onKey, true);
-    const arr = Array.isArray(paths) ? paths.filter(Boolean) : [paths].filter(Boolean);
-    if (!arr.length) return;
     if (onPickMany) onPickMany(arr);
     else if (onPick) onPick(arr[0]);
   }
 
-  // ── selection helpers ────────────────────────────────────────────────────
   function visible() {
     const q = search.value.trim().toLowerCase();
     return entries.filter((e) => !q || e.name.toLowerCase().includes(q));
@@ -114,15 +134,32 @@ export function openFileBrowser({
       .map((e) => e.path);
   }
 
-  function updatePaste() {
+  function updateStatus() {
     const paths = selectedPaths();
-    if (paths.length === 1) paste.value = paths[0];
-    else if (paths.length > 1) paste.value = `${paths.length} ${c.selectedCount || "selected"}`;
-    else paste.value = "";
+    if (paths.length === 1) {
+      statusEl.textContent = paths[0];
+      paste.value = paths[0];
+    } else if (paths.length > 1) {
+      statusEl.textContent = `${paths.length} ${c.selectedCount || "files selected"}`;
+      // Keep paste empty so Open never submits a status label as a path.
+      paste.value = "";
+    } else {
+      statusEl.textContent = current ? `${c.browsing || "Browsing"} ${current}` : "";
+    }
+    revealBtn.hidden = paths.length !== 1;
+    upBtn.disabled = !parentDir;
+  }
+
+  function showMsg(text) {
+    msg.hidden = false;
+    msg.textContent = text;
   }
 
   function handleClick(ev, idx, type, path) {
-    if (type === "dir") { load(path); return; }
+    if (type === "dir") {
+      load(path);
+      return;
+    }
     if (ev.ctrlKey || ev.metaKey) {
       selectedSet.has(idx) ? selectedSet.delete(idx) : selectedSet.add(idx);
       lastClickIdx = idx;
@@ -138,42 +175,58 @@ export function openFileBrowser({
       selectedSet.add(idx);
       lastClickIdx = idx;
     }
-    updatePaste();
+    updateStatus();
     renderView();
   }
 
-  // ── breadcrumbs ──────────────────────────────────────────────────────────
   function renderCrumbs(dir) {
     crumbs.innerHTML = "";
-    const sep = dir.includes("\\") ? "\\" : "/";
-    const parts = dir.split(/[\\/]/).filter(Boolean);
-    let acc = dir.startsWith("/") ? "" : null;
     const frag = document.createDocumentFragment();
-    const addCrumb = (label, target, isLast) => {
+    const segs = crumbSegments(dir);
+    segs.forEach((seg, i) => {
       const b = document.createElement("button");
-      b.type = "button"; b.className = "fs-crumb"; b.textContent = label;
-      if (isLast) b.setAttribute("aria-current", "true");
-      b.onclick = () => load(target);
+      b.type = "button";
+      b.className = "fs-crumb";
+      b.textContent = seg.label;
+      if (i === segs.length - 1) b.setAttribute("aria-current", "true");
+      b.onclick = () => load(seg.path);
       frag.appendChild(b);
-      if (!isLast) {
+      if (i < segs.length - 1) {
         const s = document.createElement("span");
-        s.className = "fs-crumb-sep"; s.textContent = "›"; frag.appendChild(s);
+        s.className = "fs-crumb-sep";
+        s.textContent = "›";
+        frag.appendChild(s);
       }
-    };
-    if (acc === "") addCrumb(sep, sep, parts.length === 0);
-    parts.forEach((part, i) => {
-      acc = acc === null ? part : `${acc}${sep}${part}`;
-      addCrumb(part, acc + (i === 0 && part.endsWith(":") ? sep : ""), i === parts.length - 1);
     });
     crumbs.appendChild(frag);
   }
 
-  // ── details (list) render ────────────────────────────────────────────────
+  function renderPlaces() {
+    placesEl.innerHTML = "";
+    const heading = document.createElement("div");
+    heading.className = "fs-places-label";
+    heading.textContent = c.places || "Places";
+    placesEl.appendChild(heading);
+    for (const place of places) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "fs-place";
+      b.textContent = place.label;
+      b.title = place.path;
+      b.classList.toggle("active", current === place.path);
+      b.onclick = () => load(place.path);
+      placesEl.appendChild(b);
+    }
+  }
+
   function renderDetails() {
     const rows = visible();
     listEl.innerHTML = "";
     msg.hidden = true;
-    if (!rows.length) { showEmpty(); return; }
+    if (!rows.length) {
+      showEmpty();
+      return;
+    }
     rows.forEach((e, i) => {
       const li = document.createElement("li");
       const b = document.createElement("button");
@@ -189,25 +242,29 @@ export function openFileBrowser({
         ${ext ? `<span class="fs-badge">${ext}</span>` : ""}`;
       b.querySelector(".fs-name").textContent = e.name;
       b.onclick = (ev) => handleClick(ev, i, e.type, e.path);
-      b.ondblclick = () => { if (e.type === "file") pick([e.path]); };
+      b.ondblclick = () => {
+        if (e.type === "file") pick([e.path]);
+      };
       li.appendChild(b);
       listEl.appendChild(li);
     });
   }
 
-  // ── large icons (grid) render ────────────────────────────────────────────
   let thumbObserver = null;
   function getObserver() {
     if (!thumbObserver) {
-      thumbObserver = new IntersectionObserver((ents) => {
-        ents.forEach((en) => {
-          if (en.isIntersecting) {
-            const img = en.target;
-            img.src = img.dataset.src;
-            thumbObserver.unobserve(img);
-          }
-        });
-      }, { rootMargin: "120px" });
+      thumbObserver = new IntersectionObserver(
+        (ents) => {
+          ents.forEach((en) => {
+            if (en.isIntersecting) {
+              const img = en.target;
+              img.src = img.dataset.src;
+              thumbObserver.unobserve(img);
+            }
+          });
+        },
+        { rootMargin: "120px" }
+      );
     }
     return thumbObserver;
   }
@@ -216,7 +273,10 @@ export function openFileBrowser({
     const rows = visible();
     gridEl.innerHTML = "";
     msg.hidden = true;
-    if (!rows.length) { showEmpty(); return; }
+    if (!rows.length) {
+      showEmpty();
+      return;
+    }
     const obs = getObserver();
     rows.forEach((e, i) => {
       const btn = document.createElement("button");
@@ -235,36 +295,42 @@ export function openFileBrowser({
           </div>
           <span class="fs-tile-name"></span>`;
         const img = btn.querySelector(".fs-thumb");
-        img.onerror = () => { img.style.display = "none"; };
+        img.onerror = () => {
+          img.style.display = "none";
+        };
         obs.observe(img);
       }
       btn.querySelector(".fs-tile-name").textContent = e.name;
       btn.onclick = (ev) => handleClick(ev, i, e.type, e.path);
-      btn.ondblclick = () => { if (e.type === "file") pick([e.path]); };
+      btn.ondblclick = () => {
+        if (e.type === "file") pick([e.path]);
+      };
       gridEl.appendChild(btn);
     });
   }
 
   function showEmpty() {
     const q = search.value.trim();
-    msg.hidden = false;
-    msg.textContent = q ? c.emptyFiltered || "No matches here." : c.empty || "Nothing to show.";
+    showMsg(q ? c.emptyFiltered || "No matches here." : c.empty || "Nothing to show.");
   }
 
   function renderView() {
-    if (viewMode === "icons") { renderGrid(); }
-    else { renderDetails(); }
-    revealBtn.hidden = selectedPaths().length !== 1;
+    if (viewMode === "icons") renderGrid();
+    else renderDetails();
+    updateStatus();
+    renderPlaces();
   }
 
-  // ── load directory ───────────────────────────────────────────────────────
   async function load(dir) {
     selectedSet.clear();
     lastClickIdx = -1;
+    paste.value = "";
     try {
       const q = dir ? `?dir=${encodeURIComponent(dir)}` : "";
       const data = await get(`/fs/list${q}`);
       current = data.dir;
+      parentDir = data.parent || null;
+      pathInput.value = data.dir;
       renderCrumbs(data.dir);
       entries = [];
       if (data.parent) entries.push({ name: `.. (${c.up})`, path: data.parent, type: "dir" });
@@ -278,19 +344,55 @@ export function openFileBrowser({
       entries = [];
       listEl.innerHTML = "";
       gridEl.innerHTML = "";
-      msg.hidden = false;
-      msg.textContent = `${c.loadError || "Couldn't open this folder."} ${String(err.message || err)}`;
+      showMsg(`${c.loadError || "Couldn't open this folder."} ${String(err.message || err)}`);
+      updateStatus();
     }
   }
 
-  // ── keyboard ─────────────────────────────────────────────────────────────
+  async function goToPath(raw, { pickFile = false } = {}) {
+    const path = normalizePastedPath(raw);
+    if (!path) return;
+    if (!looksLikePath(path)) {
+      showMsg(c.badPath || "Enter a full folder or file path.");
+      return;
+    }
+    try {
+      const data = await post("/fs/resolve", { path });
+      if (data.kind === "dir") {
+        await load(data.path);
+        return;
+      }
+      if (data.kind === "file") {
+        if (pickFile || !allowDirs) {
+          pick([data.path]);
+          return;
+        }
+        paste.value = data.path;
+        statusEl.textContent = data.path;
+        return;
+      }
+      showMsg(data.error || c.pathMissing || "Path not found.");
+    } catch (err) {
+      showMsg(String(err.message || err));
+    }
+  }
+
   function onKey(e) {
-    if (e.key === "Escape") { e.preventDefault(); return close(true); }
+    if (e.key === "Escape") {
+      e.preventDefault();
+      return close(true);
+    }
     if (e.key === "Enter") {
-      if (e.target === paste) { e.preventDefault(); return confirmOpen(); }
+      if (e.target === paste || e.target === pathInput) return;
       const paths = selectedPaths();
-      if (paths.length) { e.preventDefault(); return pick(paths); }
-      if (paste.value.trim()) { e.preventDefault(); return confirmOpen(); }
+      if (paths.length) {
+        e.preventDefault();
+        return pick(paths);
+      }
+      if (looksLikePath(paste.value)) {
+        e.preventDefault();
+        return goToPath(paste.value, { pickFile: true });
+      }
       return;
     }
     if (e.key === "ArrowDown" || e.key === "ArrowUp") {
@@ -298,75 +400,84 @@ export function openFileBrowser({
       const rows = visible();
       if (!rows.length) return;
       const last = selectedSet.size ? Math.max(...selectedSet) : -1;
-      const next = e.key === "ArrowDown"
-        ? Math.min(rows.length - 1, last + 1)
-        : Math.max(0, last - 1);
-      selectedSet.clear(); selectedSet.add(next); lastClickIdx = next;
-      if (rows[next]?.type === "file") paste.value = rows[next].path;
+      const next =
+        e.key === "ArrowDown" ? Math.min(rows.length - 1, last + 1) : Math.max(0, last - 1);
+      selectedSet.clear();
+      selectedSet.add(next);
+      lastClickIdx = next;
       renderView();
       (viewMode === "icons" ? gridEl : listEl)
-        .querySelector(".selected")?.scrollIntoView({ block: "nearest" });
+        .querySelector(".selected")
+        ?.scrollIntoView({ block: "nearest" });
     }
   }
 
   function confirmOpen() {
-    const path = normalizePastedPath(paste.value);
-    if (!path) return;
-    pick([path]);
+    const paths = selectedPaths();
+    if (paths.length) return pick(paths);
+    if (looksLikePath(paste.value)) return goToPath(paste.value, { pickFile: !allowDirs });
+    if (looksLikePath(pathInput.value) && allowDirs && current) return pick([current]);
+    showMsg(c.needSelection || "Select a video, or paste a full file path.");
   }
 
-  // ── reveal ───────────────────────────────────────────────────────────────
   revealBtn.onclick = async () => {
     const paths = selectedPaths();
     if (!paths.length) return;
     try {
       await post("/fs/reveal", { path: paths[0] });
     } catch (err) {
-      const msg = String(err.message || err).toLowerCase();
-      if (msg.includes("unsupported") || msg.includes("404") || msg.includes("not found")) {
+      const m = String(err.message || err).toLowerCase();
+      if (m.includes("unsupported") || m.includes("404") || m.includes("not found")) {
         revealBtn.hidden = true;
       }
     }
   };
 
-  // ── wire events ──────────────────────────────────────────────────────────
-  search.oninput = () => { selectedSet.clear(); lastClickIdx = -1; renderView(); };
-  modal.querySelector(".cancel").onclick = () => close(true);
-  modal.querySelector(".use-dir")?.addEventListener("click", () => { if (current) pick([current]); });
-  modal.querySelector(".open").onclick = () => {
-    const paths = selectedPaths();
-    if (paths.length) return pick(paths);
-    confirmOpen();
+  search.oninput = () => {
+    selectedSet.clear();
+    lastClickIdx = -1;
+    renderView();
   };
+  modal.querySelector(".cancel").onclick = () => close(true);
+  modal.querySelector(".use-dir")?.addEventListener("click", () => {
+    if (current) pick([current]);
+  });
+  modal.querySelector(".open").onclick = () => confirmOpen();
+  upBtn.onclick = () => {
+    if (parentDir) load(parentDir);
+  };
+  modal.querySelector(".fs-path-form").onsubmit = (e) => {
+    e.preventDefault();
+    goToPath(pathInput.value);
+  };
+  paste.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      goToPath(paste.value, { pickFile: !allowDirs });
+    }
+  });
+
   document.addEventListener("keydown", onKey, true);
-  backdrop.addEventListener("click", (e) => { if (e.target === backdrop) close(true); });
+  backdrop.addEventListener("click", (e) => {
+    if (e.target === backdrop) close(true);
+  });
 
   setViewMode(viewMode);
-  load(startDir).then(() => search.focus());
-}
-
-// ── helpers ───────────────────────────────────────────────────────────────
-
-function fmtSize(n) {
-  if (n < 1024) return `${n} B`;
-  const units = ["KB", "MB", "GB", "TB"];
-  let v = n; let i = -1;
-  do { v /= 1024; i += 1; } while (v >= 1024 && i < units.length - 1);
-  return `${v >= 10 ? Math.round(v) : v.toFixed(1)} ${units[i]}`;
-}
-
-/** Strip Explorer "Copy as path" quotes, BOM, and file:// wrappers. */
-export function normalizePastedPath(raw) {
-  let s = String(raw || "").trim().replace(/^\uFEFF/, "").trim();
-  if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
-    s = s.slice(1, -1).trim();
-  }
-  if (/^file:/i.test(s)) {
+  (async () => {
     try {
-      const u = new URL(s);
-      s = decodeURIComponent(u.pathname || "");
-      if (/^\/[A-Za-z]:\//.test(s)) s = s.slice(1);
-    } catch { /* keep s */ }
-  }
-  return s;
+      const data = await get("/fs/places");
+      places = data.places || [];
+    } catch {
+      places = [];
+    }
+    const preferred =
+      startDir ||
+      places.find((p) => p.id === "videos")?.path ||
+      places.find((p) => p.id === "home")?.path ||
+      null;
+    await load(preferred);
+    search.focus();
+  })();
 }
+
+export { normalizePastedPath, looksLikePath } from "./fs_path.js";
