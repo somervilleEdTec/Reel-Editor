@@ -34,6 +34,8 @@ try {
   Copy-Item -Recurse "dist\reelwright-api\*" $Bundle
   Copy-Item "dist\Reelwright.exe" (Join-Path $Bundle "Reelwright.exe")
 
+  Copy-Item "packaging\windows\uninstall_kill.ps1" (Join-Path $Bundle "uninstall_kill.ps1")
+
   New-Item -ItemType Directory -Path (Join-Path $Bundle "ui") -Force | Out-Null
   Copy-Item -Recurse "ui\web" (Join-Path $Bundle "ui\web")
 

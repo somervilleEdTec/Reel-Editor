@@ -6,10 +6,10 @@ ROOT = Path(SPECPATH).resolve().parents[1]
 
 a = Analysis(
     [str(ROOT / "packaging" / "windows" / "launcher.py")],
-    pathex=[],
+    pathex=[str(ROOT / "src")],
     binaries=[],
     datas=[],
-    hiddenimports=[],
+    hiddenimports=["reelwright.process_lifecycle"],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

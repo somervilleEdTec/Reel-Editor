@@ -42,7 +42,26 @@ Output: `dist/windows/installer/ReelwrightSetup.exe` (do not commit).
 | `ui/web/` | Product UI (also embedded in API datas) |
 | `vendor/ffmpeg/` | Optional `ffmpeg` / `ffprobe` (fetched in CI with `-FetchFfmpeg`) |
 | `vendor/models/` | Optional Whisper weights (or download on first-run consent) |
+| `uninstall_kill.ps1` | Stops running Reelwright processes during uninstall |
 | `LICENCE_NOTES.md` | Licence summary |
+
+## Uninstall
+
+Files under `{app}` cannot be deleted while they are running, so uninstall stops
+Reelwright first:
+
+- `AppMutex=ReelwrightSingleInstance` makes the uninstaller prompt when the
+  launcher is still open.
+- An `[UninstallRun]` entry runs `uninstall_kill.ps1 -InstallDir "{app}"` before
+  files are removed. It kills the pid recorded in
+  `%LOCALAPPDATA%\Reelwright\reelwright.pid` (and `api.pid`), then any
+  `Reelwright.exe` / `reelwright-api.exe`, then only the `ffmpeg.exe` /
+  `ffprobe.exe` whose path lives under the install dir — a system-wide FFmpeg is
+  never touched. It exits 0 when nothing is running.
+
+The same logic is available to Python callers via
+`reelwright.process_lifecycle.kill_reelwright_processes(install_dir)`.
+User projects under `%LOCALAPPDATA%\Reelwright\projects` are kept.
 
 ## Build prerequisites (Windows)
 
