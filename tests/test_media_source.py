@@ -24,3 +24,22 @@ def test_media_source_serves_project_video(tmp_path, monkeypatch):
     assert res.status_code == 200
     assert res.content.startswith(b"\x00\x00\x00\x18ftyp")
     assert "video" in (res.headers.get("content-type") or "")
+
+
+def test_media_source_selects_source_by_id(tmp_path, monkeypatch):
+    monkeypatch.setenv("REELWRIGHT_ROOT", str(tmp_path))
+    first, second = tmp_path / "first.mp4", tmp_path / "second.mp4"
+    first.write_bytes(b"first")
+    second.write_bytes(b"second")
+    project_path = tmp_path / "p.json"
+    Project(
+        sources=[
+            Source(id="first", path=str(first)),
+            Source(id="second", path=str(second)),
+        ]
+    ).save(str(project_path))
+    client = TestClient(app)
+    client.post("/project/open", json={"path": str(project_path)})
+    response = client.get("/media/source", params={"id": "second"})
+    assert response.status_code == 200
+    assert response.content == b"second"

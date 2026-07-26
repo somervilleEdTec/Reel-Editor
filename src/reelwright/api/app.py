@@ -29,19 +29,39 @@ app.add_middleware(
         r"https?://(localhost|127\.0\.0\.1|tauri\.localhost)(:\d+)?|"
         r"tauri://localhost|https://tauri\.localhost"
     ),
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type"],
 )
 
+from reelwright.api.assembly_routes import router as assembly_router
+from reelwright.api.audio_routes import router as audio_router
+from reelwright.api.edit_routes import router as edit_router
+from reelwright.api.fs_routes import router as fs_router
 from reelwright.api.jobs_routes import router as jobs_router
-from reelwright.api.setup_routes import router as setup_router
+from reelwright.api.marker_routes import router as marker_router
 from reelwright.api.media_routes import router as media_router
+from reelwright.api.project_routes import router as project_router
+from reelwright.api.rank_routes import router as rank_router
+from reelwright.api.setup_routes import router as setup_router
+from reelwright.api.snapshot_routes import router as snapshot_router
+from reelwright.api.source_routes import router as source_router
+from reelwright.api.title_routes import router as title_router
 
+app.include_router(assembly_router)
+app.include_router(audio_router)
+app.include_router(edit_router)
+app.include_router(fs_router)
 app.include_router(jobs_router)
-app.include_router(setup_router)
+app.include_router(marker_router)
 app.include_router(media_router)
+app.include_router(project_router)
+app.include_router(rank_router)
+app.include_router(setup_router)
+app.include_router(snapshot_router)
+app.include_router(source_router)
+app.include_router(title_router)
 
-_STATE: dict = {"path": "project.json", "project": None}
+_STATE: dict = {"path": "project.json", "project": None, "undo": [], "redo": []}
 
 
 def _proj() -> Project:
@@ -58,8 +78,9 @@ def _proj() -> Project:
 
 
 def _save(p: Project) -> None:
-    p.save(_STATE["path"])
-    _STATE["project"] = p
+    from reelwright.api.undo import save_with_undo
+
+    save_with_undo(_STATE, p)
 
 
 def _safe_path(path: str, *, must_exist: bool = False, for_write: bool = False) -> str:
@@ -130,6 +151,8 @@ def health():
 
 @app.post("/project/open")
 def open_project(body: OpenBody):
+    from reelwright.api.undo import reset_history
+
     path = _safe_path(body.path, must_exist=True)
     try:
         project = Project.load(path)
@@ -137,6 +160,7 @@ def open_project(body: OpenBody):
         raise HTTPException(400, f"Invalid project file: {e}") from e
     _STATE["path"] = path
     _STATE["project"] = project
+    reset_history(_STATE)
     return project.model_dump()
 
 

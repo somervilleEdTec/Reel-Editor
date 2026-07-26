@@ -173,6 +173,9 @@ def create_project(body: CreateProjectBody):
         job.progress = 1.0
         app_module._STATE["path"] = str(project_path)
         app_module._STATE["project"] = project
+        from reelwright.api.undo import reset_history
+
+        reset_history(app_module._STATE)
         return {"path": str(project_path), "words": len(project.words)}
 
     job = QUEUE.submit("create", work)

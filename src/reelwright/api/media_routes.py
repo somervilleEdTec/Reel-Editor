@@ -23,11 +23,15 @@ def _primary_source(project):
 
 
 @router.get("/media/source")
-def media_source():
+def media_source(id: str | None = None):
     project = app_module._proj()
-    src = _primary_source(project)
+    src = (
+        next((source for source in project.sources if source.id == id), None)
+        if id
+        else _primary_source(project)
+    )
     if not src:
-        raise HTTPException(404, "No source media in project")
+        raise HTTPException(404, "Source media not found")
     path = Path(src.path).expanduser().resolve()
     if not path.is_file():
         raise HTTPException(404, f"Media file missing: {path}")

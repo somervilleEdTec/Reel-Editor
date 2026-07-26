@@ -1,5 +1,6 @@
 from reelwright.models.assembly import Assembly, AssemblyClip
 from reelwright.models.captions import Captions
+from reelwright.models.editing import Marker, Title
 from reelwright.models.layers import Inset, Layers
 from reelwright.models.project import (
     AudioSettings,
@@ -18,8 +19,10 @@ __all__ = [
     "ExportSettings",
     "Inset",
     "Layers",
+    "Marker",
     "Project",
     "Source",
     "TranscriptImport",
+    "Title",
     "Word",
 ]

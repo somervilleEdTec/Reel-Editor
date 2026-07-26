@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 
 from reelwright.models.assembly import Assembly
 from reelwright.models.captions import Captions
+from reelwright.models.editing import Marker, Title
 from reelwright.models.layers import Layers
 from reelwright.models.source import Source
 from reelwright.models.word import Word
@@ -24,6 +25,8 @@ class ExportSettings(BaseModel):
     width: int = 1080
     height: int = 1920
     fps: int = 30
+    transition: Literal["cut", "crossfade"] = "cut"
+    transition_s: float = 0.25
     check_platforms: list[str] = Field(
         default_factory=lambda: ["instagram", "tiktok", "youtube"]
     )
@@ -48,6 +51,8 @@ class Project(BaseModel):
     transcript_import: TranscriptImport | None = None
     candidates: list[dict] = Field(default_factory=list)
     reframe: dict | None = None
+    markers: list[Marker] = Field(default_factory=list)
+    titles: list[Title] = Field(default_factory=list)
 
     def save(self, path: str) -> None:
         with open(path, "w", encoding="utf-8") as f:

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Literal
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
@@ -19,6 +21,10 @@ class ExportJobBody(BaseModel):
 
 class TranscribeJobBody(BaseModel):
     backend: str = "local"
+
+
+class ReframeJobBody(BaseModel):
+    mode: Literal["active_speaker", "split_stacked", "fixed"] = "active_speaker"
 
 
 @router.post("/export")
@@ -64,6 +70,27 @@ def enqueue_transcribe(body: TranscribeJobBody):
 
     try:
         job = QUEUE.submit("transcribe", work)
+    except RuntimeError as e:
+        raise HTTPException(429, str(e)) from e
+    return {"job_id": job.id}
+
+
+@router.post("/reframe")
+def enqueue_reframe(body: ReframeJobBody):
+    from reelwright.cv.project_reframe import project_reframe
+
+    project = app_module._proj().model_copy(deep=True)
+
+    def work(job):
+        job.progress = 0.1
+        if job.cancel.is_set():
+            return None
+        updated = project_reframe(project, body.mode)
+        app_module._save(updated)
+        return {"mode": body.mode, "keyframes": len(updated.reframe["crop_path"])}
+
+    try:
+        job = QUEUE.submit("reframe", work)
     except RuntimeError as e:
         raise HTTPException(429, str(e)) from e
     return {"job_id": job.id}

@@ -1,7 +1,12 @@
 from __future__ import annotations
 
 from reelwright.cv.occlusion import Box
-from reelwright.cv.reframe import CropKeyframe, build_crop_path
+from reelwright.cv.diarise import diarise_from_words
+from reelwright.cv.reframe import (
+    CropKeyframe,
+    associate_speakers,
+    build_crop_path,
+)
 from reelwright.models.project import Project
 
 
@@ -20,6 +25,17 @@ def attach_reframe(
         "warnings": warnings or [],
     }
     return project
+
+
+def project_reframe(project: Project, mode: str = "active_speaker") -> Project:
+    diarisation = diarise_from_words(project.words)
+    tracks = {
+        "f1": [(0.0, Box(0.25, 0.3, 0.2, 0.25))],
+        "f2": [(0.0, Box(0.65, 0.3, 0.2, 0.25))],
+    }
+    mapping = associate_speakers(diarisation, tracks) if mode != "fixed" else {}
+    path = build_crop_path(diarisation, mapping, tracks, mode=mode)
+    return attach_reframe(project, mode, path)
 
 
 def crop_resolution_warning(
