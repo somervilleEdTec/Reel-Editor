@@ -1,0 +1,11 @@
+---
+description: Universal constraints to maximize token efficiency and code quality
+globs: **/*
+alwaysApply: true
+---
+# Token Efficiency Rules
+- DO NOT rewrite entire files. Provide highly targeted diffs or surgical modifications.
+- Keep components modular, isolated, and under 60 lines of code where possible.
+- Separate raw copy/informational text from codebase architecture. Suggest moving static text to `.md` or `.json` content files.
+- Prioritize standard vanilla solutions before importing heavy external libraries.
+- Keep conversation responses concise and omit conversational filler.

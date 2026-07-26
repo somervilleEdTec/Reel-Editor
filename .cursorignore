@@ -1,0 +1,13 @@
+node_modules/
+dist/
+build/
+.git/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+*.mp4
+*.png
+*.jpg
+*.jpeg
+*.svg
+public/assets/
