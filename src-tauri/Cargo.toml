@@ -1,6 +1,6 @@
 [package]
 name = "reelwrite-shell"
-version = "3.0.1"
+version = "3.0.2"
 description = "Tauri desktop shell for Reelwrite"
 edition = "2021"
 rust-version = "1.88"

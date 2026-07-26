@@ -21,7 +21,7 @@ from reelwrite.security.paths import PathDenied, resolve_workspace_path
 
 ensure_vendor_ffmpeg_on_path()
 
-app = FastAPI(title="Reelwrite", version="3.0.1")
+app = FastAPI(title="Reelwrite", version="3.0.2")
 # Same-origin UI + optional Tauri/local shells only — never "*".
 app.add_middleware(
     CORSMiddleware,
