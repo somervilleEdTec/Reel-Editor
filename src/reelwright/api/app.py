@@ -1,21 +1,27 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Literal
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from reelwright.models.project import Project
 from reelwright.render.ffmpeg import export_master
+from reelwright.security.paths import PathDenied, resolve_workspace_path
 
 app = FastAPI(title="Reelwright", version="0.1.0")
+# Same-origin UI + optional Tauri/local shells only — never "*".
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origin_regex=(
+        r"https?://(localhost|127\.0\.0\.1|tauri\.localhost)(:\d+)?|"
+        r"tauri://localhost|https://tauri\.localhost"
+    ),
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type"],
 )
 
 from reelwright.api.jobs_routes import router as jobs_router
@@ -28,15 +34,30 @@ _STATE: dict = {"path": "project.json", "project": None}
 def _proj() -> Project:
     if _STATE["project"] is None:
         path = _STATE["path"]
-        if not Path(path).exists():
-            raise HTTPException(404, "No project loaded")
-        _STATE["project"] = Project.load(path)
+        try:
+            resolved = resolve_workspace_path(path, must_exist=True)
+        except PathDenied as e:
+            raise HTTPException(403, str(e)) from e
+        except FileNotFoundError:
+            raise HTTPException(404, "No project loaded") from None
+        _STATE["project"] = Project.load(str(resolved))
     return _STATE["project"]
 
 
 def _save(p: Project) -> None:
     p.save(_STATE["path"])
     _STATE["project"] = p
+
+
+def _safe_path(path: str, *, must_exist: bool = False, for_write: bool = False) -> str:
+    try:
+        return str(
+            resolve_workspace_path(path, must_exist=must_exist, for_write=for_write)
+        )
+    except PathDenied as e:
+        raise HTTPException(403, str(e)) from e
+    except FileNotFoundError as e:
+        raise HTTPException(404, "File not found") from e
 
 
 class OpenBody(BaseModel):
@@ -49,7 +70,7 @@ class DeleteWordBody(BaseModel):
 
 
 class LayersBody(BaseModel):
-    background: str | None = None
+    background: Literal["camera", "media"] | None = None
     inset: dict | None = None
 
 
@@ -72,11 +93,14 @@ def health():
 
 @app.post("/project/open")
 def open_project(body: OpenBody):
-    if not Path(body.path).exists():
-        raise HTTPException(404, "File not found")
-    _STATE["path"] = body.path
-    _STATE["project"] = Project.load(body.path)
-    return _STATE["project"].model_dump()
+    path = _safe_path(body.path, must_exist=True)
+    try:
+        project = Project.load(path)
+    except (ValidationError, ValueError, OSError) as e:
+        raise HTTPException(400, f"Invalid project file: {e}") from e
+    _STATE["path"] = path
+    _STATE["project"] = project
+    return project.model_dump()
 
 
 @app.get("/project")
@@ -106,7 +130,7 @@ def delete_word(body: DeleteWordBody):
 def update_layers(body: LayersBody):
     p = _proj()
     if body.background:
-        p.layers.background = body.background  # type: ignore
+        p.layers.background = body.background
     if body.inset:
         p.layers.inset = p.layers.inset.model_copy(update=body.inset)
     _save(p)
@@ -134,7 +158,8 @@ def safezones():
 @app.post("/export")
 def do_export(body: ExportBody):
     p = _proj()
-    path = export_master(p, body.out, aspect=body.aspect)
+    out = _safe_path(body.out, for_write=True)
+    path = export_master(p, out, aspect=body.aspect)
     return {"out": path}
 
 

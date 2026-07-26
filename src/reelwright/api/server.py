@@ -6,6 +6,7 @@ import uvicorn
 
 
 def main():
+    # Loopback only — never bind 0.0.0.0; API has no auth by design.
     uvicorn.run("reelwright.api.app:app", host="127.0.0.1", port=8765, reload=False)
 
 

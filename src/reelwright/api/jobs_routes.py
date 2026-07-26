@@ -5,7 +5,6 @@ from pydantic import BaseModel
 
 from reelwright.api import app as app_module
 from reelwright.jobs.queue import QUEUE
-from reelwright.models.project import Project
 from reelwright.render.ffmpeg import export_master
 
 router = APIRouter(prefix="/jobs")
@@ -19,16 +18,20 @@ class ExportJobBody(BaseModel):
 @router.post("/export")
 def enqueue_export(body: ExportJobBody):
     project = app_module._proj()
+    out = app_module._safe_path(body.out, for_write=True)
 
     def work(job):
         job.progress = 0.1
         if job.cancel.is_set():
             return None
-        path = export_master(project, body.out, aspect=body.aspect)
+        path = export_master(project, out, aspect=body.aspect)
         job.progress = 1.0
         return {"out": path}
 
-    job = QUEUE.submit("export", work)
+    try:
+        job = QUEUE.submit("export", work)
+    except RuntimeError as e:
+        raise HTTPException(429, str(e)) from e
     return {"job_id": job.id}
 
 
