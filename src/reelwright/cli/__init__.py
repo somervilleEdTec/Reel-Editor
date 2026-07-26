@@ -11,6 +11,7 @@ from . import (
     init_cmd,
     rank_cmd,
     record_vo_cmd,
+    reframe_cmd,
     run_cmd,
     select_cmd,
     transcribe_cmd,
@@ -30,6 +31,7 @@ def main(argv: list[str] | None = None) -> int:
     run_cmd.register(sub)
     rank_cmd.register(sub)
     select_cmd.register(sub)
+    reframe_cmd.register(sub)
     args = parser.parse_args(argv)
     return args.func(args)
 
