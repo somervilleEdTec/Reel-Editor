@@ -17,9 +17,18 @@ def test_apply_candidate():
     assert [w.id for w in out if not w.deleted] == [2, 3, 4, 5]
 
 
-def test_windows_and_caveats():
-    words = _mk(40)
-    cands = enumerate_windows(words, min_s=5, max_s=12)
+def test_claim_caveat_fixture(tmp_path):
+    from pathlib import Path
+    from reelwright.asr.align import import_vtt
+    from reelwright.rank.caveats import caveat_warnings
+    from reelwright.rank.windows import enumerate_windows
+
+    src = Path("tests/fixtures/claim_caveat.vtt")
+    words = import_vtt(str(src), "s")
+    # Select only the claim span (before however)
+    claim_end = next(i for i, w in enumerate(words) if w.text.lower().startswith("however")) - 1
+    warns = caveat_warnings(words, 0, max(0, claim_end))
+    assert warns
+    cands = enumerate_windows(words, min_s=1, max_s=10)
     assert cands
-    warns = caveat_warnings(words, 0, 30)
-    assert any("caveat" in w.lower() or "however" in w.lower() for w in warns)
+
