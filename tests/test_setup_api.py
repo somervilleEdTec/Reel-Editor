@@ -49,8 +49,24 @@ def test_fs_list_allowed(tmp_path, monkeypatch):
     c = TestClient(app)
     res = c.get("/fs/list", params={"dir": str(d)})
     assert res.status_code == 200
-    names = {e["name"] for e in res.json()["entries"]}
+    entries = res.json()["entries"]
+    names = {e["name"] for e in entries}
     assert "clip.mp4" in names
+    clip = next(e for e in entries if e["name"] == "clip.mp4")
+    assert clip["size"] == 1
+
+
+def test_fs_list_includes_new_camera_extensions(tmp_path, monkeypatch):
+    monkeypatch.setenv("REELWRIGHT_DATA", str(tmp_path / "data"))
+    monkeypatch.setenv("REELWRIGHT_FS_ROOTS", str(tmp_path))
+    d = tmp_path / "media"
+    d.mkdir()
+    for name in ("cam.MTS", "deck.m2ts", "old.wmv", "phone.3gp", "note.txt"):
+        (d / name).write_bytes(b"x")
+    c = TestClient(app)
+    names = {e["name"] for e in c.get("/fs/list", params={"dir": str(d)}).json()["entries"]}
+    assert {"cam.MTS", "deck.m2ts", "old.wmv", "phone.3gp"} <= names
+    assert "note.txt" not in names
 
 
 def test_caption_presets():
@@ -99,6 +115,31 @@ def test_create_project_accepts_copy_as_path_quotes(tmp_path, monkeypatch):
     assert f'"{video}"' not in blob
     assert str(video) in blob or job["status"] == "done"
 
+
+
+def test_create_project_accepts_new_extensions(tmp_path, monkeypatch):
+    monkeypatch.setenv("REELWRIGHT_DATA", str(tmp_path / "data"))
+    projects = tmp_path / "projects"
+    projects.mkdir()
+    video = tmp_path / "cam.MTS"
+    video.write_bytes(b"x")
+    c = TestClient(app)
+    assert c.post("/setup/projects-dir", json={"path": str(projects)}).status_code == 200
+    res = c.post("/projects/create", json={"video_path": str(video)})
+    assert res.status_code == 200, res.text
+
+
+def test_create_project_rejects_unknown_extension(tmp_path, monkeypatch):
+    monkeypatch.setenv("REELWRIGHT_DATA", str(tmp_path / "data"))
+    projects = tmp_path / "projects"
+    projects.mkdir()
+    doc = tmp_path / "notes.txt"
+    doc.write_bytes(b"x")
+    c = TestClient(app)
+    c.post("/setup/projects-dir", json={"path": str(projects)})
+    res = c.post("/projects/create", json={"video_path": str(doc)})
+    assert res.status_code == 400
+    assert "Unsupported video type" in res.json()["detail"]
 
 
 def test_create_project_rejects_directory(tmp_path, monkeypatch):

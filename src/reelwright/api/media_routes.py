@@ -8,17 +8,9 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 
 from reelwright.api import app as app_module
+from reelwright.media_formats import MEDIA_TYPES
 
 router = APIRouter()
-
-_MEDIA_TYPES = {
-    ".mp4": "video/mp4",
-    ".mov": "video/quicktime",
-    ".m4v": "video/x-m4v",
-    ".webm": "video/webm",
-    ".mkv": "video/x-matroska",
-    ".avi": "video/x-msvideo",
-}
 
 
 def _primary_source(project):
@@ -39,5 +31,5 @@ def media_source():
     path = Path(src.path).expanduser().resolve()
     if not path.is_file():
         raise HTTPException(404, f"Media file missing: {path}")
-    media = _MEDIA_TYPES.get(path.suffix.lower(), "application/octet-stream")
+    media = MEDIA_TYPES.get(path.suffix.lower(), "application/octet-stream")
     return FileResponse(path, media_type=media, filename=path.name)

@@ -8,6 +8,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ValidationError
 
+from reelwright.media_formats import (
+    DEFAULT_OUTPUT_FORMAT,
+    OUTPUT_FORMATS,
+    VIDEO_EXTS,
+    format_for_ext,
+)
 from reelwright.models.project import Project
 from reelwright.paths import ensure_vendor_ffmpeg_on_path, ui_web_dir
 from reelwright.render.ffmpeg import export_master
@@ -15,7 +21,7 @@ from reelwright.security.paths import PathDenied, resolve_workspace_path
 
 ensure_vendor_ffmpeg_on_path()
 
-app = FastAPI(title="Reelwright", version="0.1.0")
+app = FastAPI(title="Reelwright", version="2.0.0")
 # Same-origin UI + optional Tauri/local shells only — never "*".
 app.add_middleware(
     CORSMiddleware,
@@ -91,6 +97,30 @@ class CaptionsBody(BaseModel):
 class ExportBody(BaseModel):
     out: str = "master.mp4"
     aspect: str | None = None
+    format: str | None = None
+
+
+def resolve_export_out(out: str, fmt: str | None) -> tuple[str, str]:
+    """Return (safe absolute out path, format key).
+
+    Bare filenames land next to the loaded project.json (not the server cwd).
+    The extension is forced to match the chosen format.
+    """
+    name = (out or "").strip() or "master"
+    key = fmt or format_for_ext(Path(name).suffix) or DEFAULT_OUTPUT_FORMAT
+    if key not in OUTPUT_FORMATS:
+        raise HTTPException(400, f"Unsupported export format: {key}")
+    ext = OUTPUT_FORMATS[key]["ext"]
+    p = Path(name)
+    replaceable = VIDEO_EXTS | {v["ext"] for v in OUTPUT_FORMATS.values()}
+    if p.suffix.lower() in replaceable:
+        if p.suffix.lower() != ext:
+            p = p.with_suffix(ext)
+    else:
+        p = Path(str(p) + ext)
+    if "/" not in str(p) and "\\" not in str(p):
+        p = Path(_STATE["path"]).expanduser().resolve().parent / p
+    return _safe_path(str(p), for_write=True), key
 
 
 @app.get("/health")
@@ -162,12 +192,24 @@ def safezones():
     return json.loads(ref.read_text(encoding="utf-8"))
 
 
+@app.get("/formats")
+def formats():
+    return {
+        "input_exts": sorted(VIDEO_EXTS),
+        "output": [
+            {"key": k, "ext": v["ext"], "label": v["label"]}
+            for k, v in OUTPUT_FORMATS.items()
+        ],
+        "default": DEFAULT_OUTPUT_FORMAT,
+    }
+
+
 @app.post("/export")
 def do_export(body: ExportBody):
     p = _proj()
-    out = _safe_path(body.out, for_write=True)
-    path = export_master(p, out, aspect=body.aspect)
-    return {"out": path}
+    out, fmt = resolve_export_out(body.out, body.format)
+    path = export_master(p, out, aspect=body.aspect, fmt=fmt)
+    return {"out": path, "format": fmt}
 
 
 ui_dir = ui_web_dir()

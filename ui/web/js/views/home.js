@@ -2,6 +2,7 @@ import { get, post } from "../api.js";
 import { setState } from "../store.js";
 import { navigate } from "../router.js";
 import { openFileBrowser } from "../components/filebrowser.js";
+import { isVideoName } from "../formats.js";
 import { progressBar, setProgress } from "../components/progress.js";
 import { toast } from "../components/toast.js";
 
@@ -48,7 +49,7 @@ export async function renderHome(root, state) {
     openFileBrowser({
       title: c.new,
       startDir: list.projects_dir,
-      filter: (e) => /\.(mp4|mov|mkv|webm|m4v|avi)$/i.test(e.name),
+      filter: (e) => isVideoName(e.name),
       onPick: (videoPath) => createReel(root, videoPath),
     });
   };

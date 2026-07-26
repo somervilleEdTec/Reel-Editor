@@ -1,6 +1,6 @@
 {
   "name": "reelwright-ui",
   "private": true,
-  "version": "0.1.0",
+  "version": "2.0.0",
   "description": "Browser UI for local FastAPI. Windows Setup.exe launches the API and opens this UI. Optional Tauri shell is out of scope for the current packaging path."
 }
