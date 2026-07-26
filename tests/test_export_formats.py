@@ -9,7 +9,13 @@ from reelwright.api.app import app, resolve_export_out
 from reelwright.models.project import Project
 from reelwright.models.source import Source
 from reelwright.models.word import Word
-from reelwright.render.ffmpeg import _codec_args, _stderr_tail
+from reelwright.edit.edl import Segment
+from reelwright.render.ffmpeg import (
+    _build_filter,
+    _codec_args,
+    _escape_filter_path,
+    _stderr_tail,
+)
 
 
 def _open_project(c, tmp_path):
@@ -100,6 +106,80 @@ def test_duplicate_export_to_same_path_rejected(tmp_path):
     finally:
         release.set()
         QUEUE.cancel(blocker.id)
+
+
+def test_escape_filter_path_quotes_windows_drive():
+    """Drive-letter ':' must not become an ffmpeg option separator."""
+    win = r"C:\Users\tomso\AppData\Local\Temp\reelwright-f22067cw\captions.ass"
+    esc = _escape_filter_path(win)
+    assert esc.startswith("'") and esc.endswith("'")
+    assert r"C\:/" in esc
+    assert "AppData/Local/Temp" in esc
+    # Unquoted backslash-only escape is insufficient on Windows ffmpeg.
+    assert esc != r"C\:/Users/tomso/AppData/Local/Temp/reelwright-f22067cw/captions.ass"
+
+
+def test_build_filter_embeds_quoted_ass_path():
+    project = Project(
+        sources=[Source(id="s", path="x.mp4")],
+        words=[Word(id=0, text="Hi", start_s=0, end_s=0.2, source_id="s")],
+    )
+    vf = _build_filter(
+        [Segment("s", 0.0, 1.0)],
+        project,
+        r"C:\Users\tomso\AppData\Local\Temp\reelwright-x\captions.ass",
+    )
+    assert "subtitles='C\\:/Users/tomso/" in vf
+    assert vf.endswith("[outv]")
+
+
+@pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="ffmpeg not installed")
+def test_subtitles_filter_accepts_colon_in_path(tmp_path):
+    """Reproduce Windows original_size bug: colon path must parse as filename."""
+    import subprocess
+
+    media = tmp_path / "in.mp4"
+    subprocess.run(
+        [
+            "ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
+            "-f", "lavfi", "-i", "color=c=black:s=320x240:d=0.2",
+            "-f", "lavfi", "-i", "anullsrc=r=48000:cl=mono",
+            "-t", "0.2", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac",
+            str(media),
+        ],
+        check=True,
+        capture_output=True,
+    )
+    # Linux allows ':' in directory names — mimics Windows drive separator.
+    colon_dir = tmp_path / "C:"
+    colon_dir.mkdir()
+    ass = colon_dir / "captions.ass"
+    ass.write_text(
+        "[Script Info]\nScriptType: v4.00+\n\n"
+        "[V4+ Styles]\n"
+        "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, "
+        "OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, "
+        "ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, "
+        "Alignment, MarginL, MarginR, MarginV, Encoding\n"
+        "Style: Default,Arial,24,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,"
+        "0,0,0,0,100,100,0,0,1,0,0,2,10,10,10,1\n\n"
+        "[Events]\n"
+        "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n"
+        "Dialogue: 0,0:00:00.00,0:00:00.20,Default,,0,0,0,,Hi\n"
+    )
+    filt = f"[0:v]subtitles={_escape_filter_path(str(ass))}[outv]"
+    out = tmp_path / "out.mp4"
+    proc = subprocess.run(
+        [
+            "ffmpeg", "-y", "-hide_banner", "-i", str(media),
+            "-filter_complex", filt, "-map", "[outv]", "-frames:v", "1", str(out),
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert proc.returncode == 0, proc.stderr
+    assert "original_size" not in (proc.stderr or "")
+    assert out.exists()
 
 
 @pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="ffmpeg not installed")
