@@ -1,106 +1,22 @@
-import { post } from "../../api.js";
-import { state, setState } from "../../store.js";
-import { toast } from "../../components/toast.js";
-import { paintCaption } from "./caption_preview.js";
+import { mountInspectorAudio } from "./inspector_audio.js";
+import { mountInspectorBasics } from "./inspector_basics.js";
+import { mountInspectorRank } from "./inspector_rank.js";
+import { mountInspectorReframe } from "./inspector_reframe.js";
+import { mountInspectorSnapshots } from "./inspector_snapshots.js";
+import { mountInspectorTitles } from "./inspector_titles.js";
+import { mountInspectorTransitions } from "./inspector_transitions.js";
 
 export function mountInspector(el, { copy, flashSaved }) {
-  const p = state.project;
-  const presets = state.presets || {};
-  el.innerHTML = `<div class="cluster">
-      <p class="section-label">${copy.background}</p>
-      <div class="seg">
-        <button type="button" data-bg="media" class="${p.layers.background === "media" ? "active" : ""}">${copy.bgMedia}</button>
-        <button type="button" data-bg="camera" class="${p.layers.background === "camera" ? "active" : ""}">${copy.bgCamera}</button>
-      </div>
-    </div>
-    <div class="cluster">
-      <p class="section-label">${copy.captions}</p>
-      <p class="section-label" style="margin-top:.5rem">${copy.captionStyle}</p>
-      <div class="swatches"></div>
-      <label class="field">${copy.captionY}
-        <input type="range" min="0.2" max="0.9" step="0.01" class="cap-y" value="${p.captions.y}" />
-      </label>
-      <label class="field" style="flex-direction:row;align-items:center;gap:.5rem">
-        <input type="checkbox" class="cap-up" ${p.captions.uppercase ? "checked" : ""} />
-        ${copy.uppercase}
-      </label>
-      <label class="field">${copy.maxWords}
-        <input type="number" min="1" max="6" class="cap-mw" value="${p.captions.max_words_visible}" />
-      </label>
-    </div>`;
-
-  el.querySelectorAll("[data-bg]").forEach((btn) => {
-    btn.onclick = async () => {
-      try {
-        await post("/layers", { background: btn.dataset.bg });
-        state.project.layers.background = btn.dataset.bg;
-        setState({ project: state.project });
-        flashSaved();
-        refreshStage();
-        mountInspector(el, { copy, flashSaved });
-      } catch (e) {
-        toast(String(e.message || e), "danger");
-      }
-    };
-  });
-
-  const sw = el.querySelector(".swatches");
-  for (const [name, style] of Object.entries(presets)) {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.className = `swatch${p.captions.preset === name ? " active" : ""}`;
-    b.textContent = name;
-    b.style.background = style.box || "#333";
-    b.style.fontStyle = style.italic ? "italic" : "normal";
-    b.onclick = async () => {
-      try {
-        await post("/captions", { preset: name });
-        state.project.captions.preset = name;
-        setState({ project: state.project });
-        flashSaved();
-        refreshStage();
-        mountInspector(el, { copy, flashSaved });
-      } catch (e) {
-        toast(String(e.message || e), "danger");
-      }
-    };
-    sw.appendChild(b);
-  }
-
-  el.querySelector(".cap-y").oninput = (e) => {
-    const y = Number(e.target.value);
-    state.project.captions.y = y;
-    refreshStage();
-  };
-  el.querySelector(".cap-y").onchange = async (e) => {
-    await saveCaptions({ y: Number(e.target.value) }, flashSaved);
-  };
-  el.querySelector(".cap-up").onchange = async (e) => {
-    await saveCaptions({ uppercase: e.target.checked }, flashSaved);
-    refreshStage();
-  };
-  el.querySelector(".cap-mw").onchange = async (e) => {
-    await saveCaptions({ max_words_visible: Number(e.target.value) }, flashSaved);
-    refreshStage();
-  };
-}
-
-function refreshStage() {
-  const wrap = document.querySelector(".stage-wrap");
-  if (wrap?._refreshStage) wrap._refreshStage();
-  else {
-    const cap = document.querySelector(".caption");
-    if (cap) paintCaption(cap, state.project, state.presets || {});
-  }
-}
-
-async function saveCaptions(patch, flashSaved) {
-  try {
-    await post("/captions", patch);
-    Object.assign(state.project.captions, patch);
-    setState({ project: state.project });
-    flashSaved();
-  } catch (e) {
-    toast(String(e.message || e), "danger");
-  }
+  const rerender = () => mountInspector(el, { copy, flashSaved });
+  el.innerHTML = `<div class="ins-basic"></div><div class="ins-audio"></div>
+    <div class="ins-transitions"></div><div class="ins-titles"></div>
+    <div class="ins-rank"></div><div class="ins-reframe"></div>
+    <div class="ins-snapshots"></div>`;
+  mountInspectorBasics(el.querySelector(".ins-basic"), { copy, flashSaved, rerender });
+  mountInspectorAudio(el.querySelector(".ins-audio"), { copy, flashSaved });
+  mountInspectorTransitions(el.querySelector(".ins-transitions"), { copy, flashSaved });
+  mountInspectorTitles(el.querySelector(".ins-titles"), { copy, flashSaved, rerender });
+  mountInspectorRank(el.querySelector(".ins-rank"), { copy, flashSaved, rerender });
+  mountInspectorReframe(el.querySelector(".ins-reframe"), { copy, flashSaved });
+  mountInspectorSnapshots(el.querySelector(".ins-snapshots"), { copy, flashSaved, rerender });
 }

@@ -6,11 +6,11 @@ import sys
 from pathlib import Path
 
 REQUIRED = (
-    "reelwright.api",
-    "reelwright.api.app",
-    "reelwright.api.jobs_routes",
-    "reelwright.api.setup_routes",
-    "reelwright.api.media_routes",
+    "reelwrite.api",
+    "reelwrite.api.app",
+    "reelwrite.api.jobs_routes",
+    "reelwrite.api.setup_routes",
+    "reelwrite.api.media_routes",
 )
 
 
@@ -18,7 +18,7 @@ def main() -> int:
     # Default workpath from build.ps1 / local pyinstaller at repo root
     root = Path(__file__).resolve().parents[2]
     candidates = [
-        root / "build" / "reelwright-api" / "Analysis-00.toc",
+        root / "build" / "reelwrite-api" / "Analysis-00.toc",
         Path(sys.argv[1]) if len(sys.argv) > 1 else None,
     ]
     toc = next((p for p in candidates if p and p.is_file()), None)

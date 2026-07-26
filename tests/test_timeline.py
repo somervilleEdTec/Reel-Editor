@@ -1,5 +1,5 @@
-from reelwright.edit.edl import Segment
-from reelwright.edit.timeline import Timeline
+from reelwrite.edit.edl import Segment
+from reelwrite.edit.timeline import Timeline
 
 
 def test_source_to_output():

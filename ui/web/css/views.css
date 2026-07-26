@@ -178,6 +178,21 @@
   z-index: 4;
 }
 .inspector .cluster { margin-bottom: 1.25rem; }
+.inspector .inline-check { flex-direction: row; align-items: center; gap: 0.5rem; }
+.inspector .compact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
+.inspector .empty-line { color: var(--ink-soft); font-size: 0.85rem; margin: 0.35rem 0; }
+.inspector .title-row,
+.inspector .candidate-row,
+.inspector .snapshot-row {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--line);
+}
+.inspector .candidate-row small,
+.inspector .snapshot-row small { color: var(--ink-soft); }
+.inspector .snapshot-save { display: grid; gap: 0.4rem; }
+.inspector .tool-status { margin-top: 0.5rem; }
 .swatches { display: grid; gap: 0.4rem; }
 .stage-controls { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
 /* Focused editor chrome: charcoal canvas, light work panels (CapCut-style layout). */
@@ -273,6 +288,39 @@ body.editor-chrome .stage-controls { color: var(--chrome-fg-soft); }
   flex-wrap: wrap;
 }
 .dest-row .dest-label { overflow-wrap: anywhere; color: var(--ink-soft); }
+/* Panel tabs (Media / Transcript) */
+.panel-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--line);
+  flex: none;
+}
+.panel-tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  padding: 0.55rem 0.5rem;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+}
+.panel-tab:hover { color: var(--spruce); background: transparent; }
+.panel-tab.active { color: var(--spruce); border-bottom-color: var(--spruce); }
+body.editor-chrome .panel-tabs { border-bottom-color: var(--chrome-edge); }
+body.editor-chrome .panel-tab { color: var(--chrome-fg-soft); }
+body.editor-chrome .panel-tab.active { color: var(--chrome-fg); border-bottom-color: var(--chrome-fg); }
+
+/* Left panel uses flex column so rails fill remaining height */
+.left-panel { display: flex; flex-direction: column; }
+.left-panel .rail { flex: 1; overflow: auto; padding: 0.65rem 0.85rem; }
+
+/* Timeline zone — reserved for timeline agent */
+.timeline-zone { min-height: 0; }
+
 @media (max-width: 900px) {
   .editor-grid { grid-template-columns: 1fr; }
   .panel-stage { order: -1; }

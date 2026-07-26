@@ -1,4 +1,4 @@
-"""PyInstaller entry for the Reelwright API server."""
+"""PyInstaller entry for the Reelwrite API server."""
 
 from __future__ import annotations
 
@@ -12,20 +12,20 @@ if getattr(sys, "frozen", False):
     meipass = Path(getattr(sys, "_MEIPASS", root))
     ui = meipass / "ui" / "web"
     if ui.is_dir():
-        os.environ.setdefault("REELWRIGHT_UI", str(ui))
+        os.environ.setdefault("REELWRITE_UI", str(ui))
     vendor = root / "vendor"
     if vendor.is_dir():
-        os.environ.setdefault("REELWRIGHT_VENDOR", str(vendor))
+        os.environ.setdefault("REELWRITE_VENDOR", str(vendor))
 
-from reelwright.paths import ensure_stdio, ensure_vendor_ffmpeg_on_path
+from reelwrite.paths import ensure_stdio, ensure_vendor_ffmpeg_on_path
 
 ensure_stdio()
 ensure_vendor_ffmpeg_on_path()
 
 import uvicorn
 
-# Import the app object (not a string) so PyInstaller traces reelwright.api.*
-from reelwright.api.app import app
+# Import the app object (not a string) so PyInstaller traces reelwrite.api.*
+from reelwrite.api.app import app
 
 
 def main():

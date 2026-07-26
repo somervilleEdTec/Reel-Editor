@@ -1,4 +1,4 @@
-from reelwright.media_formats import (
+from reelwrite.media_formats import (
     DEFAULT_OUTPUT_FORMAT,
     MEDIA_TYPES,
     OUTPUT_FORMATS,

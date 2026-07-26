@@ -1,10 +1,10 @@
-from reelwright.assembly.distribute import auto_distribute, reorder_clips
-from reelwright.assembly.reconcile import clip_output_duration, reconcile
-from reelwright.edit.edl import derive_edl
-from reelwright.edit.timeline import Timeline
-from reelwright.models.assembly import Assembly, AssemblyClip
-from reelwright.models.source import Source
-from reelwright.models.word import Word
+from reelwrite.assembly.distribute import auto_distribute, reorder_clips
+from reelwrite.assembly.reconcile import clip_output_duration, reconcile
+from reelwrite.edit.edl import derive_edl
+from reelwrite.edit.timeline import Timeline
+from reelwrite.models.assembly import Assembly, AssemblyClip
+from reelwrite.models.source import Source
+from reelwrite.models.word import Word
 
 
 def test_auto_distribute():

@@ -1,5 +1,5 @@
-from reelwright.edit.edl import derive_edl
-from reelwright.models.word import Word
+from reelwrite.edit.edl import derive_edl
+from reelwrite.models.word import Word
 
 
 def _words(pairs):

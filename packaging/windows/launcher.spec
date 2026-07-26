@@ -6,10 +6,10 @@ ROOT = Path(SPECPATH).resolve().parents[1]
 
 a = Analysis(
     [str(ROOT / "packaging" / "windows" / "launcher.py")],
-    pathex=[],
+    pathex=[str(ROOT / "src")],
     binaries=[],
     datas=[],
-    hiddenimports=[],
+    hiddenimports=["reelwrite.process_lifecycle"],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -26,7 +26,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name="Reelwright",
+    name="Reelwrite",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

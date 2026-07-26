@@ -1,6 +1,6 @@
 # Transcription model consent
 
-Reelwright can download an English Whisper model (via faster-whisper) for **offline** transcription on this machine.
+Reelwrite can download an English Whisper model (via faster-whisper) for **offline** transcription on this machine.
 
 - The model is large (hundreds of MB to a few GB depending on size).
 - Files stay on your computer under the app models folder.

@@ -5,12 +5,12 @@ import pytest
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
-from reelwright.api.app import app, resolve_export_out
-from reelwright.models.project import Project
-from reelwright.models.source import Source
-from reelwright.models.word import Word
-from reelwright.edit.edl import Segment
-from reelwright.render.ffmpeg import (
+from reelwrite.api.app import app, resolve_export_out
+from reelwrite.models.project import Project
+from reelwrite.models.source import Source
+from reelwrite.models.word import Word
+from reelwrite.edit.edl import Segment
+from reelwrite.render.ffmpeg import (
     _build_filter,
     _codec_args,
     _escape_filter_path,
@@ -91,7 +91,7 @@ def test_stderr_tail_keeps_last_lines():
 def test_duplicate_export_to_same_path_rejected(tmp_path):
     import threading
 
-    from reelwright.jobs.queue import QUEUE
+    from reelwrite.jobs.queue import QUEUE
 
     c = TestClient(app)
     _open_project(c, tmp_path)
@@ -110,13 +110,13 @@ def test_duplicate_export_to_same_path_rejected(tmp_path):
 
 def test_escape_filter_path_quotes_windows_drive():
     """Drive-letter ':' must not become an ffmpeg option separator."""
-    win = r"C:\Users\tomso\AppData\Local\Temp\reelwright-f22067cw\captions.ass"
+    win = r"C:\Users\tomso\AppData\Local\Temp\reelwrite-f22067cw\captions.ass"
     esc = _escape_filter_path(win)
     assert esc.startswith("'") and esc.endswith("'")
     assert r"C\:/" in esc
     assert "AppData/Local/Temp" in esc
     # Unquoted backslash-only escape is insufficient on Windows ffmpeg.
-    assert esc != r"C\:/Users/tomso/AppData/Local/Temp/reelwright-f22067cw/captions.ass"
+    assert esc != r"C\:/Users/tomso/AppData/Local/Temp/reelwrite-f22067cw/captions.ass"
 
 
 def test_build_filter_embeds_quoted_ass_path():
@@ -127,7 +127,7 @@ def test_build_filter_embeds_quoted_ass_path():
     vf = _build_filter(
         [Segment("s", 0.0, 1.0)],
         project,
-        r"C:\Users\tomso\AppData\Local\Temp\reelwright-x\captions.ass",
+        r"C:\Users\tomso\AppData\Local\Temp\reelwrite-x\captions.ass",
     )
     assert "subtitles='C\\:/Users/tomso/" in vf
     assert vf.endswith("[outv]")

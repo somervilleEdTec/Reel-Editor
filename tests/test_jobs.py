@@ -1,5 +1,5 @@
-from reelwright.jobs.errors import MediaProbeError, require_media
-from reelwright.jobs.queue import JobQueue
+from reelwrite.jobs.errors import MediaProbeError, require_media
+from reelwrite.jobs.queue import JobQueue
 
 
 def test_require_media_missing(tmp_path):

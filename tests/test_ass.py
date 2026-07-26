@@ -1,11 +1,11 @@
 from pathlib import Path
 
-from reelwright.captions.ass import caption_events, render_ass
-from reelwright.edit.edl import Segment
-from reelwright.edit.timeline import Timeline
-from reelwright.models.project import Project
-from reelwright.models.source import Source
-from reelwright.models.word import Word
+from reelwrite.captions.ass import caption_events, render_ass
+from reelwrite.edit.edl import Segment
+from reelwrite.edit.timeline import Timeline
+from reelwrite.models.project import Project
+from reelwrite.models.source import Source
+from reelwrite.models.word import Word
 
 
 def test_caption_events_use_output_time():

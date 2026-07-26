@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from reelwright.paths import normalize_user_path
+from reelwrite.paths import normalize_user_path
 
 
 def test_normalize_strips_explorer_quotes(tmp_path: Path):

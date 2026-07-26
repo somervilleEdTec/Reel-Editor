@@ -2,14 +2,14 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from reelwright.api.app import app
-from reelwright.models.project import Project
-from reelwright.models.source import Source
-from reelwright.models.word import Word
+from reelwrite.api.app import app
+from reelwrite.models.project import Project
+from reelwrite.models.source import Source
+from reelwrite.models.word import Word
 
 
 def test_setup_status(tmp_path, monkeypatch):
-    monkeypatch.setenv("REELWRIGHT_DATA", str(tmp_path / "data"))
+    monkeypatch.setenv("REELWRITE_DATA", str(tmp_path / "data"))
     c = TestClient(app)
     res = c.get("/setup/status")
     assert res.status_code == 200
@@ -19,7 +19,7 @@ def test_setup_status(tmp_path, monkeypatch):
 
 
 def test_setup_projects_dir_and_complete(tmp_path, monkeypatch):
-    monkeypatch.setenv("REELWRIGHT_DATA", str(tmp_path / "data"))
+    monkeypatch.setenv("REELWRITE_DATA", str(tmp_path / "data"))
     projects = tmp_path / "projects"
     projects.mkdir()
     c = TestClient(app)
@@ -33,7 +33,7 @@ def test_setup_projects_dir_and_complete(tmp_path, monkeypatch):
 
 
 def test_list_projects_empty(tmp_path, monkeypatch):
-    monkeypatch.setenv("REELWRIGHT_DATA", str(tmp_path / "data"))
+    monkeypatch.setenv("REELWRITE_DATA", str(tmp_path / "data"))
     c = TestClient(app)
     c.post("/setup/projects-dir", json={"path": str(tmp_path / "projects")})
     data = c.get("/projects").json()
@@ -41,8 +41,8 @@ def test_list_projects_empty(tmp_path, monkeypatch):
 
 
 def test_fs_list_allowed(tmp_path, monkeypatch):
-    monkeypatch.setenv("REELWRIGHT_DATA", str(tmp_path / "data"))
-    monkeypatch.setenv("REELWRIGHT_FS_ROOTS", str(tmp_path))
+    monkeypatch.setenv("REELWRITE_DATA", str(tmp_path / "data"))
+    monkeypatch.setenv("REELWRITE_FS_ROOTS", str(tmp_path))
     d = tmp_path / "media"
     d.mkdir()
     (d / "clip.mp4").write_bytes(b"x")
@@ -57,8 +57,8 @@ def test_fs_list_allowed(tmp_path, monkeypatch):
 
 
 def test_fs_list_includes_new_camera_extensions(tmp_path, monkeypatch):
-    monkeypatch.setenv("REELWRIGHT_DATA", str(tmp_path / "data"))
-    monkeypatch.setenv("REELWRIGHT_FS_ROOTS", str(tmp_path))
+    monkeypatch.setenv("REELWRITE_DATA", str(tmp_path / "data"))
+    monkeypatch.setenv("REELWRITE_FS_ROOTS", str(tmp_path))
     d = tmp_path / "media"
     d.mkdir()
     for name in ("cam.MTS", "deck.m2ts", "old.wmv", "phone.3gp", "note.txt"):
@@ -76,7 +76,7 @@ def test_caption_presets():
 
 
 def test_project_open_for_editor(tmp_path, monkeypatch):
-    monkeypatch.setenv("REELWRIGHT_DATA", str(tmp_path / "data"))
+    monkeypatch.setenv("REELWRITE_DATA", str(tmp_path / "data"))
     p = Project(
         sources=[Source(id="s", path="x.mp4")],
         words=[Word(id=0, text="Hi", start_s=0, end_s=0.2, source_id="s")],
@@ -89,7 +89,7 @@ def test_project_open_for_editor(tmp_path, monkeypatch):
 
 
 def test_create_project_accepts_copy_as_path_quotes(tmp_path, monkeypatch):
-    monkeypatch.setenv("REELWRIGHT_DATA", str(tmp_path / "data"))
+    monkeypatch.setenv("REELWRITE_DATA", str(tmp_path / "data"))
     projects = tmp_path / "projects"
     projects.mkdir()
     video = tmp_path / "talk.mp4"
@@ -118,7 +118,7 @@ def test_create_project_accepts_copy_as_path_quotes(tmp_path, monkeypatch):
 
 
 def test_create_project_accepts_new_extensions(tmp_path, monkeypatch):
-    monkeypatch.setenv("REELWRIGHT_DATA", str(tmp_path / "data"))
+    monkeypatch.setenv("REELWRITE_DATA", str(tmp_path / "data"))
     projects = tmp_path / "projects"
     projects.mkdir()
     video = tmp_path / "cam.MTS"
@@ -130,7 +130,7 @@ def test_create_project_accepts_new_extensions(tmp_path, monkeypatch):
 
 
 def test_create_project_rejects_unknown_extension(tmp_path, monkeypatch):
-    monkeypatch.setenv("REELWRIGHT_DATA", str(tmp_path / "data"))
+    monkeypatch.setenv("REELWRITE_DATA", str(tmp_path / "data"))
     projects = tmp_path / "projects"
     projects.mkdir()
     doc = tmp_path / "notes.txt"
@@ -143,7 +143,7 @@ def test_create_project_rejects_unknown_extension(tmp_path, monkeypatch):
 
 
 def test_create_project_rejects_directory(tmp_path, monkeypatch):
-    monkeypatch.setenv("REELWRIGHT_DATA", str(tmp_path / "data"))
+    monkeypatch.setenv("REELWRITE_DATA", str(tmp_path / "data"))
     projects = tmp_path / "projects"
     projects.mkdir()
     c = TestClient(app)

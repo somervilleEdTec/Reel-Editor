@@ -1,8 +1,8 @@
-from reelwright.cv.diarise import diarise_from_words
-from reelwright.cv.occlusion import Box, occlusion_warnings
-from reelwright.cv.reframe import associate_speakers, build_crop_path, smooth_path
-from reelwright.cv.reframe import DiarSegment
-from reelwright.models.word import Word
+from reelwrite.cv.diarise import diarise_from_words
+from reelwrite.cv.occlusion import Box, occlusion_warnings
+from reelwrite.cv.reframe import associate_speakers, build_crop_path, smooth_path
+from reelwrite.cv.reframe import DiarSegment
+from reelwrite.models.word import Word
 
 
 def test_occlusion_intersects():
@@ -28,7 +28,7 @@ def test_associate_and_crop_path():
 
 
 def test_smooth_path_monotonic_time():
-    from reelwright.cv.reframe import CropKeyframe
+    from reelwrite.cv.reframe import CropKeyframe
 
     keys = [
         CropKeyframe(0, 0.2, 0.2, "active_speaker"),
