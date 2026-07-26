@@ -81,7 +81,7 @@ jobs:
         with:
           tag_name: ${{ steps.ver.outputs.tag }}
           name: Reelwright ${{ steps.ver.outputs.version }}
-          draft: ${{ github.event_name == 'workflow_dispatch' && inputs.draft || false }}
+          draft: ${{ github.event_name == 'workflow_dispatch' && inputs.draft == true }}
           generate_release_notes: true
           files: dist/windows/installer/ReelwrightSetup.exe
           fail_on_unmatched_files: true
