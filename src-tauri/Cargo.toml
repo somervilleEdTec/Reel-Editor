@@ -1,0 +1,32 @@
+[package]
+name = "reelwright-shell"
+version = "2.0.0"
+description = "Tauri desktop shell for Reelwright"
+edition = "2021"
+rust-version = "1.88"
+publish = false
+
+# Binary name drives the packaged filename: src-tauri/target/release/Reelwright.exe,
+# which is what Reelwright.iss installs as the Start Menu entry point.
+[[bin]]
+name = "Reelwright"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+
+# Single-instance mutex only; already in tauri's dependency tree.
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = [
+  "Win32_Foundation",
+  "Win32_Security",
+  "Win32_System_Threading",
+] }
+
+[profile.release]
+opt-level = "s"
+lto = true
+strip = true

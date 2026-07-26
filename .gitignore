@@ -16,3 +16,5 @@ project.json
 .venv/
 node_modules/
 ui/src-tauri/target/
+src-tauri/target/
+src-tauri/gen/
