@@ -8,7 +8,9 @@ Phases **0–4** implemented in-repo (CLI + local FastAPI/web UI). Desktop Tauri
 
 ## Install
 
-**From this repo (recommended until an installer is published):**
+**Windows end users:** download `ReelwrightSetup.exe` from [GitHub Releases](https://github.com/somervilleEdTec/Reel-Editor/releases) (built by Actions — not stored in git). See [Install Instructions.txt](Install%20Instructions.txt).
+
+**Developers / from source:**
 
 ```bash
 pip install -e ".[dev]"
@@ -17,7 +19,7 @@ python3 -m reelwright.api.server
 # open http://127.0.0.1:8765/
 ```
 
-**Windows installer:** `ReelwrightSetup.exe` is **not** in git. It is produced on a Windows machine by `packaging/windows/build.ps1` (output: `dist/windows/installer/`). See [Install Instructions.txt](Install%20Instructions.txt) and [docs/packaging-windows.md](docs/packaging-windows.md).
+**Maintainers:** tag `v*` or run workflow **Release Windows Package** to publish the installer. Details: [docs/packaging-windows.md](docs/packaging-windows.md).
 
 First launch walks through FFmpeg check, optional model consent, and projects folder.
 

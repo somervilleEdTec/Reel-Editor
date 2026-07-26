@@ -1,0 +1,89 @@
+# Build ReelwrightSetup.exe on Windows and publish a GitHub Release.
+#
+# Triggers:
+#   - Push a version tag: git tag v0.1.0 && git push origin v0.1.0
+#   - Actions → "Release Windows Package" → Run workflow (enter tag)
+#
+# The .exe is attached to the Release (not committed to git).
+
+name: Release Windows Package
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (e.g. v0.1.0). Created/updated if needed."
+        required: true
+        default: "v0.1.0"
+      draft:
+        description: "Publish as draft release"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  package-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set version
+        id: ver
+        shell: bash
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            TAG="${{ github.ref_name }}"
+          else
+            TAG="${{ inputs.tag }}"
+          fi
+          case "$TAG" in
+            v*) ;;
+            *) echo "Tag must start with v (got: $TAG)"; exit 1 ;;
+          esac
+          VERSION="${TAG#v}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Using tag=$TAG version=$VERSION"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --no-progress -y
+
+      - name: Build installer
+        shell: pwsh
+        env:
+          CI: "true"
+        run: |
+          powershell -ExecutionPolicy Bypass -File packaging/windows/build.ps1 `
+            -Version "${{ steps.ver.outputs.version }}" `
+            -FetchFfmpeg
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ReelwrightSetup-${{ steps.ver.outputs.version }}
+          path: dist/windows/installer/ReelwrightSetup.exe
+          if-no-files-found: error
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: Reelwright ${{ steps.ver.outputs.version }}
+          draft: ${{ github.event_name == 'workflow_dispatch' && inputs.draft || false }}
+          generate_release_notes: true
+          files: dist/windows/installer/ReelwrightSetup.exe
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

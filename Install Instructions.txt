@@ -9,28 +9,28 @@ normal use.
 
 IMPORTANT — where is ReelwrightSetup.exe?
 -----------------------------------------
-ReelwrightSetup.exe is NOT stored in this GitHub repository.
+ReelwrightSetup.exe is NOT committed into the Git source tree.
 
-Reasons:
-  - It is a large Windows build artifact (PyInstaller + Inno Setup).
-  - The dist/ folder is listed in .gitignore on purpose.
-  - Binaries must be built on a Windows machine (see section C).
+It is published as a GitHub Release asset instead:
 
-What IS in the repo:
-  - Source code
-  - packaging/windows/ scripts that CREATE the installer
-  - Placeholders under vendor/ffmpeg/ and vendor/models/ (README only)
+  https://github.com/somervilleEdTec/Reel-Editor/releases
 
-Until someone builds and shares ReelwrightSetup.exe, install from
-source using section A below.
+How it is created:
+  - GitHub Actions workflow: .github/workflows/release-windows.yml
+  - Trigger: push a tag like v0.1.0, or run "Release Windows Package"
+    from the Actions tab
+  - Output is attached to that Release (and also kept under dist/ on
+    the build machine only; dist/ stays gitignored)
+
+Until a Release exists, install from source using section A below.
 
 
 ----------------------------------------------------------------
-A. Install from this repository (works today)
+A. Install from this repository (developers / until a Release exists)
 ----------------------------------------------------------------
 
-Use this on Windows, macOS, or Linux while developing or until an
-installer build is published.
+Use this on Windows, macOS, or Linux while developing or if no
+installer Release has been published yet.
 
 1. Prerequisites
    - Python 3.11 or newer
@@ -61,67 +61,45 @@ installer build is published.
 
 
 ----------------------------------------------------------------
-B. Windows installer (only AFTER it has been built)
+B. Windows installer from GitHub Releases (end users)
 ----------------------------------------------------------------
 
-Use this only if you already have ReelwrightSetup.exe from a team
-release or from a local build (section C). You will not find this
-file by browsing the GitHub repo.
-
-1. Get the installer
-   - From your school/team distribution, OR
-   - From a build output folder:
-       dist\windows\installer\ReelwrightSetup.exe
-     (created on a Windows PC by packaging/windows/build.ps1)
-
-2. Run the installer
-   - Double-click ReelwrightSetup.exe.
-   - Follow the on-screen steps.
+1. Open the Releases page
+     https://github.com/somervilleEdTec/Reel-Editor/releases
+2. Open the latest release and download ReelwrightSetup.exe
+3. Double-click ReelwrightSetup.exe and follow the wizard
    - Install location (default): %LOCALAPPDATA%\Reelwright
-   - No administrator rights are required.
-   - Optional: tick "Create a desktop icon" if offered.
-
-3. Start Reelwright
-   - Open Start Menu → Reelwright
-     (or the desktop shortcut if you created one).
-   - The launcher starts a local API on 127.0.0.1:8765 and opens
-     your default browser.
-
-4. Complete first-run setup (in the browser)
-   - Confirm FFmpeg is available (bundled vendor copy or system PATH).
-   - Optionally consent to download a transcription model
-     (you can skip and do this later).
-   - Choose a projects folder (default:
-     %LOCALAPPDATA%\Reelwright\projects).
-
-5. Create or open a reel
-   - From Home, start a new reel or open a recent project.
-   - Use the editor to trim words, adjust composition, then Export.
+   - No administrator rights are required
+   - Optional: create a desktop icon
+4. Start Menu → Reelwright
+   - Launcher starts http://127.0.0.1:8765/ and opens your browser
+5. Complete first-run setup, then create or open a reel
 
 
 ----------------------------------------------------------------
-C. Build ReelwrightSetup.exe (maintainers, Windows only)
+C. Publish a Release / build the installer (maintainers)
 ----------------------------------------------------------------
 
-Run these steps on a Windows machine (or Windows CI runner).
-This is how the missing .exe is produced.
+Preferred: GitHub Actions (creates the Release + attaches the .exe)
 
-1. Install build tools
-   - Python 3.11+
-   - pip install -e ".[dev]" pyinstaller
-   - Inno Setup 6 (https://jrsoftware.org/isinfo.php)
-   - Optional: copy LGPL ffmpeg.exe and ffprobe.exe into
-     vendor\ffmpeg\ before building (see vendor/ffmpeg/README.md)
+1. Merge packaging changes to main
+2. Either:
+   a) Tag and push:
+        git tag v0.1.0
+        git push origin v0.1.0
+   b) Or: GitHub → Actions → "Release Windows Package" → Run workflow
+      (enter tag e.g. v0.1.0)
+3. Wait for the Windows job to finish
+4. Confirm the Release under:
+     https://github.com/somervilleEdTec/Reel-Editor/releases
+   Asset: ReelwrightSetup.exe
 
-2. Build bundle + installer
-   powershell -ExecutionPolicy Bypass -File packaging/windows/build.ps1
+Local Windows build (optional):
 
-3. Find the output (still not committed to git)
-   - Installer: dist\windows\installer\ReelwrightSetup.exe
-   - If Inno Setup is missing, the app bundle is at
-     dist\windows\bundle\
-   - Distribute that .exe to end users by release download / shared
-     drive — do not commit it to the repository.
+1. Python 3.11+, Inno Setup 6, then:
+     powershell -ExecutionPolicy Bypass -File packaging/windows/build.ps1 -Version 0.1.0 -FetchFfmpeg
+2. Output: dist\windows\installer\ReelwrightSetup.exe
+   (still do not commit; upload via the Actions release workflow)
 
 
 ----------------------------------------------------------------

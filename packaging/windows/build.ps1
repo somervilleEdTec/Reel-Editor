@@ -1,14 +1,28 @@
 # Build Windows bundle + installer (run on Windows with PyInstaller + Inno Setup)
-# Usage: powershell -ExecutionPolicy Bypass -File packaging/windows/build.ps1
+# Usage:
+#   powershell -ExecutionPolicy Bypass -File packaging/windows/build.ps1
+#   powershell -ExecutionPolicy Bypass -File packaging/windows/build.ps1 -Version 0.1.1
+#   powershell -ExecutionPolicy Bypass -File packaging/windows/build.ps1 -FetchFfmpeg
+
+param(
+  [string]$Version = "0.1.0",
+  [switch]$FetchFfmpeg
+)
 
 $ErrorActionPreference = "Stop"
 $Root = Resolve-Path (Join-Path $PSScriptRoot "..\..")
 $Dist = Join-Path $Root "dist\windows"
 $Bundle = Join-Path $Dist "bundle"
+$VendorFfmpeg = Join-Path $Root "vendor\ffmpeg"
 
 Write-Host "Root: $Root"
+Write-Host "Version: $Version"
 Remove-Item -Recurse -Force $Dist -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Path $Bundle | Out-Null
+
+if ($FetchFfmpeg) {
+  & (Join-Path $PSScriptRoot "fetch_ffmpeg.ps1") -DestDir $VendorFfmpeg
+}
 
 Push-Location $Root
 try {
@@ -19,11 +33,9 @@ try {
   Copy-Item -Recurse "dist\reelwright-api\*" $Bundle
   Copy-Item "dist\Reelwright.exe" (Join-Path $Bundle "Reelwright.exe")
 
-  # UI next to launcher (also inside _internal from PyInstaller datas)
   New-Item -ItemType Directory -Path (Join-Path $Bundle "ui") -Force | Out-Null
   Copy-Item -Recurse "ui\web" (Join-Path $Bundle "ui\web")
 
-  # Vendor placeholders
   New-Item -ItemType Directory -Path (Join-Path $Bundle "vendor\ffmpeg") -Force | Out-Null
   New-Item -ItemType Directory -Path (Join-Path $Bundle "vendor\models") -Force | Out-Null
   if (Test-Path "vendor\ffmpeg") {
@@ -39,9 +51,16 @@ try {
   ) | Where-Object { Test-Path $_ } | Select-Object -First 1
 
   if ($iscc) {
-    & $iscc "packaging\windows\Reelwright.iss"
-    Write-Host "Installer: dist\windows\installer\ReelwrightSetup.exe"
+    & $iscc "/DMyAppVersion=$Version" "packaging\windows\Reelwright.iss"
+    $setup = Join-Path $Dist "installer\ReelwrightSetup.exe"
+    if (-not (Test-Path $setup)) {
+      throw "Installer missing after ISCC: $setup"
+    }
+    Write-Host "Installer: $setup"
   } else {
+    if ($env:CI -eq "true") {
+      throw "Inno Setup not found (required in CI)"
+    }
     Write-Warning "Inno Setup not found; bundle ready at dist\windows\bundle"
   }
 }

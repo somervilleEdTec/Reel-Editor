@@ -2,7 +2,9 @@
 ; Build after PyInstaller: packaging/windows/build.ps1
 
 #define MyAppName "Reelwright"
+#ifndef MyAppVersion
 #define MyAppVersion "0.1.0"
+#endif
 #define MyAppPublisher "Somerville EdTec"
 #define MyAppExeName "Reelwright.exe"
 #define DistDir "..\..\dist\windows"
