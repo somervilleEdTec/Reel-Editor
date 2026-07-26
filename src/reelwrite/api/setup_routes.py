@@ -138,7 +138,7 @@ def list_projects():
 @router.post("/projects/create")
 def create_project(body: CreateProjectBody):
     try:
-        video = normalize_user_path(body.video_path).resolve()
+        video = normalize_user_path(body.video_path).resolve(strict=False)
     except ValueError as e:
         raise HTTPException(400, str(e)) from e
     if video.is_dir():
