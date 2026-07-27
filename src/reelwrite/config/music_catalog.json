@@ -1,0 +1,150 @@
+{
+  "version": 1,
+  "attribution_note": "All tracks are free to use under Creative Commons Attribution (CC BY). Credit the artist when required by the license.",
+  "tracks": [
+    {
+      "id": "broke-for-free-night-owl",
+      "title": "Night Owl",
+      "artist": "Broke For Free",
+      "genre": "lofi",
+      "duration_s": 194,
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "attribution": "Night Owl by Broke For Free",
+      "page_url": "https://freemusicarchive.org/music/Broke_For_Free/Directionless_EP/Broke_For_Free_-_Night_Owl/",
+      "download_url": "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/WFMU/Broke_For_Free/Directionless_EP/Broke_For_Free_-_01_-_Night_Owl.mp3"
+    },
+    {
+      "id": "tours-enthusiast",
+      "title": "Enthusiast",
+      "artist": "Tours",
+      "genre": "upbeat",
+      "duration_s": 171,
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "attribution": "Enthusiast by Tours",
+      "page_url": "https://freemusicarchive.org/music/Tours/Enthusiast/Tours_-_Enthusiast/",
+      "download_url": "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/no_curator/Tours/Enthusiast/Tours_-_01_-_Enthusiast.mp3"
+    },
+    {
+      "id": "chad-crouch-algorithms",
+      "title": "Algorithms",
+      "artist": "Chad Crouch",
+      "genre": "ambient",
+      "duration_s": 149,
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "attribution": "Algorithms by Chad Crouch",
+      "page_url": "https://freemusicarchive.org/music/Chad_Crouch/Arps/Chad_Crouch_-_Algorithms/",
+      "download_url": "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/ccCommunity/Chad_Crouch/Arps/Chad_Crouch_-_Algorithms.mp3"
+    },
+    {
+      "id": "podington-bear-starling",
+      "title": "Starling",
+      "artist": "Podington Bear",
+      "genre": "cinematic",
+      "duration_s": 105,
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "attribution": "Starling by Podington Bear",
+      "page_url": "https://freemusicarchive.org/music/Podington_Bear/Solo_Instruments/Podington_Bear_-_Starling/",
+      "download_url": "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/Music_for_Video/Podington_Bear/Solo_Instruments/Podington_Bear_-_Starling.mp3"
+    },
+    {
+      "id": "km-carefree",
+      "title": "Carefree",
+      "artist": "Kevin MacLeod",
+      "genre": "upbeat",
+      "duration_s": 205,
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "attribution": "Carefree by Kevin MacLeod (incompetech.com)",
+      "page_url": "https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1400037",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Carefree.mp3"
+    },
+    {
+      "id": "km-wallpaper",
+      "title": "Wallpaper",
+      "artist": "Kevin MacLeod",
+      "genre": "ambient",
+      "duration_s": 220,
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "attribution": "Wallpaper by Kevin MacLeod (incompetech.com)",
+      "page_url": "https://incompetech.com/music/royalty-free/",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Wallpaper.mp3"
+    },
+    {
+      "id": "km-funk-game-loop",
+      "title": "Funk Game Loop",
+      "artist": "Kevin MacLeod",
+      "genre": "upbeat",
+      "duration_s": 57,
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "attribution": "Funk Game Loop by Kevin MacLeod (incompetech.com)",
+      "page_url": "https://incompetech.com/music/royalty-free/",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Funk%20Game%20Loop.mp3"
+    },
+    {
+      "id": "km-sneaky-snitch",
+      "title": "Sneaky Snitch",
+      "artist": "Kevin MacLeod",
+      "genre": "playful",
+      "duration_s": 137,
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "attribution": "Sneaky Snitch by Kevin MacLeod (incompetech.com)",
+      "page_url": "https://incompetech.com/music/royalty-free/",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Sneaky%20Snitch.mp3"
+    },
+    {
+      "id": "km-local-forecast",
+      "title": "Local Forecast",
+      "artist": "Kevin MacLeod",
+      "genre": "upbeat",
+      "duration_s": 165,
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "attribution": "Local Forecast by Kevin MacLeod (incompetech.com)",
+      "page_url": "https://incompetech.com/music/royalty-free/",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Local%20Forecast.mp3"
+    },
+    {
+      "id": "km-dreamy-flashback",
+      "title": "Dreamy Flashback",
+      "artist": "Kevin MacLeod",
+      "genre": "cinematic",
+      "duration_s": 127,
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "attribution": "Dreamy Flashback by Kevin MacLeod (incompetech.com)",
+      "page_url": "https://incompetech.com/music/royalty-free/",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Dreamy%20Flashback.mp3"
+    },
+    {
+      "id": "km-easy-lemon",
+      "title": "Easy Lemon",
+      "artist": "Kevin MacLeod",
+      "genre": "lofi",
+      "duration_s": 126,
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "attribution": "Easy Lemon by Kevin MacLeod (incompetech.com)",
+      "page_url": "https://incompetech.com/music/royalty-free/",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Easy%20Lemon.mp3"
+    },
+    {
+      "id": "km-lobby-time",
+      "title": "Lobby Time",
+      "artist": "Kevin MacLeod",
+      "genre": "ambient",
+      "duration_s": 193,
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "attribution": "Lobby Time by Kevin MacLeod (incompetech.com)",
+      "page_url": "https://incompetech.com/music/royalty-free/",
+      "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Lobby%20Time.mp3"
+    }
+  ]
+}

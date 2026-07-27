@@ -5,7 +5,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 
-Role = Literal["camera", "media", "voiceover", "participant"]
+Role = Literal["camera", "media", "voiceover", "participant", "music"]
 
 
 class Source(BaseModel):

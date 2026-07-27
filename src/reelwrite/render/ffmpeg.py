@@ -13,6 +13,7 @@ from reelwrite.models.project import Project
 from reelwrite.models.source import Source
 from reelwrite.render.assembly_filters import build_assembly_filters
 from reelwrite.render.edl_filters import build_edl_av_filters
+from reelwrite.render.music_filters import apply_music_bed
 from reelwrite.render.profiles import apply_profile
 from reelwrite.render.title_filters import build_title_filters
 
@@ -161,7 +162,7 @@ def _build_export_filter(
         include_assembly or bool(getattr(project, "titles", None))
     ):
         transition, transition_s = "cut", 0.0
-    parts, video_label, audio_label, _ = build_edl_av_filters(
+    parts, video_label, audio_label, duration_s = build_edl_av_filters(
         edl,
         source_inputs,
         sources,
@@ -187,7 +188,22 @@ def _build_export_filter(
     video_label = "[capv]"
     title_parts, video_label = build_title_filters(project.titles, video_label, w, h)
     parts.extend(title_parts)
-    parts.append(f"{audio_label}anull[outa]")
+    music_id = getattr(project.audio, "music_track_id", None)
+    music_src = sources.get(music_id) if music_id else None
+    if music_src and music_src.has_audio and music_id in source_inputs:
+        audio_label = apply_music_bed(
+            parts,
+            audio_label,
+            source_inputs[music_id],
+            duration_s,
+            project.audio.music_gain_db,
+            project.audio.duck_under_speech,
+        )
+    else:
+        parts.append(f"{audio_label}anull[outa]")
+        audio_label = "[outa]"
+    if audio_label != "[outa]":
+        parts.append(f"{audio_label}anull[outa]")
     parts.append(f"{video_label}format=yuv420p[outv]")
     return ";".join(parts)
 
@@ -208,6 +224,9 @@ def _required_source_ids(
     if include_assembly and project.assembly:
         for clip in project.assembly.clips:
             add(clip.source_id)
+    music_id = getattr(project.audio, "music_track_id", None)
+    if music_id:
+        add(music_id)
     return ids
 
 

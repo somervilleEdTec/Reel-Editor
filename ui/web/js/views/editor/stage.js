@@ -10,8 +10,9 @@ export function mountStage(el, { copy, flashSaved }) {
   el.innerHTML = `<div class="stage-frame">
     <div class="stage-well settle">
       <div class="stage">
-        <video class="stage-video" muted playsinline loop preload="metadata"
+        <video class="stage-video" playsinline loop preload="metadata"
           src="/media/source?v=${encodeURIComponent(state.projectPath || "")}"></video>
+        <audio class="stage-music" preload="none" loop></audio>
         <div class="safe" hidden></div>
         <div class="stage-crop" hidden>
           <div class="stage-crop-window" title="Drag to pan framing"></div>
@@ -48,8 +49,11 @@ export function mountStage(el, { copy, flashSaved }) {
   video.addEventListener("error", () => {
     toast("Could not load video preview — check the source file path", "danger");
   });
-  wireTransport(el, video, copy);
-  wirePlayheadSync(el, video);
+  const musicEl = el.querySelector(".stage-music");
+  el._music = musicEl;
+  wireTransport(el, video, musicEl, copy);
+  wirePlayheadSync(el, video, musicEl);
+  syncStageMusic(musicEl);
 
   function applyLayout() {
     const p = state.project;
@@ -77,7 +81,7 @@ export function mountStage(el, { copy, flashSaved }) {
   );
 }
 
-function wireTransport(el, video, copy) {
+function wireTransport(el, video, musicEl, copy) {
   const btn = el.querySelector(".play-toggle");
   const scrub = el.querySelector(".scrub");
   const time = el.querySelector(".timecode");
@@ -87,11 +91,24 @@ function wireTransport(el, video, copy) {
     btn.setAttribute("aria-label", video.paused ? copy.play : copy.pause);
   };
   btn.onclick = () => {
-    if (video.paused) video.play().catch(() => {});
-    else video.pause();
+    if (video.paused) {
+      syncStageMusic(musicEl);
+      video.muted = false;
+      video.play().catch(() => {});
+      if (musicEl?.src) musicEl.play().catch(() => {});
+    } else {
+      video.pause();
+      musicEl?.pause();
+    }
   };
-  video.addEventListener("play", paintState);
-  video.addEventListener("pause", paintState);
+  video.addEventListener("play", () => {
+    paintState();
+    if (musicEl?.src && musicEl.paused) musicEl.play().catch(() => {});
+  });
+  video.addEventListener("pause", () => {
+    paintState();
+    musicEl?.pause();
+  });
 
   let jumping = false;
   video.addEventListener("timeupdate", () => {
@@ -114,6 +131,7 @@ function wireTransport(el, video, copy) {
     // Broadcast output time to store for timeline playhead
     const outTime = segs?.length ? (srcToOut(video.currentTime, segs) ?? state.playheadOut) : video.currentTime;
     setState({ playheadSrc: video.currentTime, playheadOut: outTime ?? 0 });
+    syncMusicClock(musicEl, outTime ?? video.currentTime);
   });
 
   scrub.oninput = () => {
@@ -121,14 +139,46 @@ function wireTransport(el, video, copy) {
   };
 }
 
-function wirePlayheadSync(el, video) {
+function wirePlayheadSync(el, video, musicEl) {
   if (el._phUnsub) el._phUnsub();
   el._phUnsub = subscribe((st) => {
     // Sync video when timeline seeks externally (threshold avoids feedback loop)
     if (st.playheadSrc != null && Math.abs(st.playheadSrc - video.currentTime) > 0.15) {
       video.currentTime = st.playheadSrc;
     }
+    if (st.project !== el._musicProjectRef) {
+      el._musicProjectRef = st.project;
+      syncStageMusic(musicEl);
+    }
   });
+}
+
+function syncStageMusic(musicEl) {
+  if (!musicEl) return;
+  const audio = state.project?.audio || {};
+  const id = audio.music_track_id;
+  const gainDb = Number(audio.music_gain_db ?? -18);
+  musicEl.volume = Math.min(1, Math.max(0, 10 ** (gainDb / 20)));
+  if (!id) {
+    musicEl.pause();
+    musicEl.removeAttribute("src");
+    return;
+  }
+  const next = `/media/source?id=${encodeURIComponent(id)}`;
+  if (musicEl.dataset.trackId !== id) {
+    const wasPlaying = !musicEl.paused && musicEl.src;
+    musicEl.dataset.trackId = id;
+    musicEl.src = next;
+    if (wasPlaying) musicEl.play().catch(() => {});
+  }
+}
+
+function syncMusicClock(musicEl, outTime) {
+  if (!musicEl?.src || !musicEl.duration || Number.isNaN(musicEl.duration)) return;
+  const target = outTime % musicEl.duration;
+  if (Math.abs(musicEl.currentTime - target) > 0.35) {
+    musicEl.currentTime = target;
+  }
 }
 
 function wireSafezones(el, safe, zones) {

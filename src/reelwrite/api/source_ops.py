@@ -12,7 +12,7 @@ from reelwrite.ingest.probe import probe
 from reelwrite.models.project import Project
 from reelwrite.models.source import Source
 
-EditableRole = Literal["media", "camera", "voiceover"]
+EditableRole = Literal["media", "camera", "voiceover", "music"]
 
 
 def primary_word_source(project: Project) -> str:

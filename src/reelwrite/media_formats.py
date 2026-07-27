@@ -24,6 +24,12 @@ MEDIA_TYPES = {
     ".wmv": "video/x-ms-wmv",
     ".flv": "video/x-flv",
     ".3gp": "video/3gpp",
+    ".mp3": "audio/mpeg",
+    ".wav": "audio/wav",
+    ".m4a": "audio/mp4",
+    ".aac": "audio/aac",
+    ".flac": "audio/flac",
+    ".ogg": "audio/ogg",
 }
 
 # Export containers. mp4/mov ship H.264/AAC (+faststart); mkv H.264/AAC;

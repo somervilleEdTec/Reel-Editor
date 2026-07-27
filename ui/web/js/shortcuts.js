@@ -15,7 +15,14 @@ export function registerEditorShortcuts(actions) {
     if (e.code === "Space") {
       e.preventDefault();
       const v = actions.getVideo?.();
-      if (v) { if (v.paused) v.play().catch(() => {}); else v.pause(); }
+      if (v) {
+        if (v.paused) {
+          v.muted = false;
+          v.play().catch(() => {});
+        } else {
+          v.pause();
+        }
+      }
     } else if (e.code === "KeyV" && !ctrl) {
       e.preventDefault();
       actions.setTool?.("select");

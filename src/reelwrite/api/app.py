@@ -42,6 +42,7 @@ from reelwrite.api.fs_routes import router as fs_router
 from reelwrite.api.jobs_routes import router as jobs_router
 from reelwrite.api.marker_routes import router as marker_router
 from reelwrite.api.media_routes import router as media_router
+from reelwrite.api.music_routes import router as music_router
 from reelwrite.api.project_routes import router as project_router
 from reelwrite.api.rank_routes import router as rank_router
 from reelwrite.api.setup_routes import router as setup_router
@@ -56,6 +57,7 @@ app.include_router(fs_router)
 app.include_router(jobs_router)
 app.include_router(marker_router)
 app.include_router(media_router)
+app.include_router(music_router)
 app.include_router(project_router)
 app.include_router(rank_router)
 app.include_router(setup_router)

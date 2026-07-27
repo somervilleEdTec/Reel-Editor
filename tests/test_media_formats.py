@@ -14,7 +14,8 @@ def test_video_exts_cover_common_camera_formats():
 
 
 def test_media_types_cover_every_video_ext():
-    assert set(MEDIA_TYPES) == VIDEO_EXTS
+    assert VIDEO_EXTS <= set(MEDIA_TYPES)
+    assert {".mp3", ".wav", ".m4a", ".aac", ".flac", ".ogg"} <= set(MEDIA_TYPES)
 
 
 def test_format_for_ext_case_insensitive():

@@ -45,6 +45,8 @@ def remove_project_sources(body: RemoveSourcesBody):
             project.assembly.narration_source_id = (
                 narration if narration in available else ""
             )
+    if project.audio.music_track_id in ids:
+        project.audio.music_track_id = None
     removed = before - len(project.sources)
     if removed:
         app_module._save(project)
